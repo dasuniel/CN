@@ -277,6 +277,18 @@ canvas#strokeCv{width:100%; aspect-ratio:1; display:block; border-radius:20px; b
   .face .bigzh{font-size:96px;}
   #screen{padding-left:28px; padding-right:28px;}
 }
+.spk{width:42px;height:42px;min-width:42px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s ease,background .15s ease;vertical-align:middle;padding:0;}
+.spk svg{width:19px;height:19px;color:var(--red);}
+.spk:active{transform:scale(.9);}
+.spk.playing{background:var(--badbg);border-color:var(--red);}
+.spk.lg{width:58px;height:58px;min-width:58px;}.spk.lg svg{width:26px;height:26px;}
+.spk.sm{width:34px;height:34px;min-width:34px;}.spk.sm svg{width:15px;height:15px;}
+.spk .x05{font-size:10.5px;font-weight:700;color:var(--red);letter-spacing:.02em;}
+.audioRow{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;}
+.humRow{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;align-items:center;}
+.humBtn{display:inline-flex;flex-direction:column;align-items:center;gap:2px;padding:7px 10px 5px;border-radius:11px;border:1.5px solid var(--line);background:var(--card);cursor:pointer;color:var(--muted);font-size:10.5px;font-family:inherit;}
+.humBtn:active{transform:scale(.93);}
+select.voiceSel{padding:10px 12px;border-radius:11px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-family:inherit;font-size:14px;max-width:210px;}
 </style>
 </head>
 <body>
@@ -1100,7 +1112,7 @@ var PATH = [
    ============================================================ */
 var STORE_KEY = 'inkmandarin_v1';
 var DEFAULT_DB = {
-  settings: { pinyin:true, english:true, dark:false, flip:'normal', goal:20, front:'character' },
+  settings: { pinyin:true, english:true, dark:false, flip:'normal', goal:20, front:'character', autoSay:true, speed:'normal', voiceURI:null },
   srs: {},
   stats: { quiz:[], tone:{ok:0,total:0,streak:0,best:0}, chars:{}, phrases:{},
            activity:{}, streak:0, lastActive:null, newToday:{date:null,count:0} }
@@ -1154,6 +1166,91 @@ function save(){
       }catch(e){}
     }, 400);
   }
+}
+/* ============================================================
+   AUDIO — system text-to-speech (zh) + tone-contour hummer
+   ============================================================ */
+var AU = { ok:false, voices:[], voice:null, ctx:null };
+function audioInit(){
+  try{
+    if (typeof speechSynthesis === 'undefined' || typeof SpeechSynthesisUtterance === 'undefined') return;
+    AU.ok = true;
+    var pickVoices = function(){
+      try{
+        var vs = speechSynthesis.getVoices() || [];
+        AU.voices = vs.filter(function(v){ return /^zh([-_]|$)/i.test(v.lang) || /chinese|\u4e2d\u6587|\u666e\u901a\u8bdd/i.test(v.name); });
+        for (var i = 0; i < AU.voices.length; i++){
+          if (DB.settings.voiceURI && AU.voices[i].voiceURI === DB.settings.voiceURI){ AU.voice = AU.voices[i]; return; }
+        }
+        var cn = AU.voices.filter(function(v){ return /zh[-_]CN/i.test(v.lang); });
+        AU.voice = cn[0] || AU.voices[0] || null;
+      }catch(e){}
+    };
+    pickVoices();
+    try{ speechSynthesis.addEventListener('voiceschanged', pickVoices); }
+    catch(e){ try{ speechSynthesis.onvoiceschanged = pickVoices; }catch(e2){} }
+  }catch(e){}
+}
+function speak(text, rate){
+  if (!AU.ok || !text) return false;
+  try{
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    if (AU.voice) u.voice = AU.voice;
+    u.lang = (AU.voice && AU.voice.lang) || 'zh-CN';
+    u.rate = rate || (DB.settings.speed === 'slow' ? 0.62 : 0.92);
+    u.pitch = 1;
+    speechSynthesis.speak(u);
+    try{ speechSynthesis.resume(); }catch(e){}
+    return true;
+  }catch(e){ return false; }
+}
+function autoSay(text, delay){
+  if (!DB.settings.autoSay || !AU.ok) return;
+  if (delay) later(function(){ speak(text); }, delay);
+  else speak(text);
+}
+function spkBtn(text, cls, slow){
+  if (!AU.ok) return '';
+  return '<button class="spk' + (cls ? ' ' + cls : '') + '" data-act="speak"' + (slow ? ' data-slow="1"' : '') +
+    ' data-say="' + esc(text) + '" aria-label="' + (slow ? 'listen slowly' : 'listen') + '">' +
+    (slow ? '<span class="x05">0.5\u00d7</span>' : '<i data-lucide="volume-2"></i>') + '</button>';
+}
+function flashPlaying(el){
+  if (!el) return;
+  el.classList.add('playing');
+  setTimeout(function(){ try{ el.classList.remove('playing'); }catch(e){} }, 900);
+}
+function humTone(t){
+  try{
+    if (!AU.ctx){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      AU.ctx = new AC();
+    }
+    var c = AU.ctx;
+    if (c.state === 'suspended') c.resume();
+    var o = c.createOscillator(), g = c.createGain();
+    o.type = 'sine'; o.connect(g); g.connect(c.destination);
+    var now = c.currentTime, dur = t === 5 ? 0.22 : 0.55, B = 185;
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(0.45, now + 0.04);
+    g.gain.setValueAtTime(0.45, now + dur - 0.07);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    if (t === 1) o.frequency.setValueAtTime(B * 1.5, now);
+    else if (t === 2){ o.frequency.setValueAtTime(B * 1.05, now); o.frequency.exponentialRampToValueAtTime(B * 1.55, now + dur); }
+    else if (t === 3){ o.frequency.setValueAtTime(B * 1.08, now); o.frequency.exponentialRampToValueAtTime(B * 0.8, now + dur * 0.55); o.frequency.exponentialRampToValueAtTime(B * 1.3, now + dur); }
+    else if (t === 4){ o.frequency.setValueAtTime(B * 1.7, now); o.frequency.exponentialRampToValueAtTime(B * 0.85, now + dur * 0.8); }
+    else o.frequency.setValueAtTime(B * 1.15, now);
+    o.start(now); o.stop(now + dur + 0.03);
+    return true;
+  }catch(e){ return false; }
+}
+function humRowHTML(){
+  return '<div class="humRow mt"><span class="tiny dim" style="margin-right:2px">Hear the shapes:</span>' +
+    [1,2,3,4,5].map(function(t){
+      return '<button class="humBtn" data-act="hum" data-t="' + t + '">' + toneSVG(t, 26) + '<span>' + TONE_NAMES[t] + '</span></button>';
+    }).join('') + '</div>';
 }
 function logAct(n){
   var t = todayStr(), st = DB.stats;
@@ -1257,7 +1354,7 @@ var cur = 'home';
 var timers = [];
 function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
 function clearTimers(){ timers.forEach(function(t){ clearTimeout(t); }); timers = []; }
-var ICONS = {"activity": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2\"></path></svg>", "book-open": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 7v14\"></path><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"></path></svg>", "chevron-down": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m6 9 6 6 6-6\"></path></svg>", "chevron-left": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m15 18-6-6 6-6\"></path></svg>", "chevron-right": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 18 6-6-6-6\"></path></svg>", "chevron-up": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m18 15-6-6-6 6\"></path></svg>", "clock": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><polyline points=\"12 6 12 12 16 14\"></polyline></svg>", "film": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"></rect><path d=\"M7 3v18\"></path><path d=\"M3 7.5h4\"></path><path d=\"M3 12h18\"></path><path d=\"M3 16.5h4\"></path><path d=\"M17 3v18\"></path><path d=\"M17 7.5h4\"></path><path d=\"M17 16.5h4\"></path></svg>", "flame": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z\"></path></svg>", "home": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"></path><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"></path></svg>", "layers": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z\"></path><path d=\"m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65\"></path><path d=\"m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65\"></path></svg>", "list-checks": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m3 17 2 2 4-4\"></path><path d=\"m3 7 2 2 4-4\"></path><path d=\"M13 6h8\"></path><path d=\"M13 12h8\"></path><path d=\"M13 18h8\"></path></svg>", "lock": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\"></rect><path d=\"M7 11V7a5 5 0 0 1 10 0v4\"></path></svg>", "map": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z\"></path><path d=\"M15 5.764v15\"></path><path d=\"M9 3.236v15\"></path></svg>", "message-circle": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7.9 20A9 9 0 1 0 4 16.1L2 22Z\"></path></svg>", "pen-tool": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15.707 21.293a1 1 0 0 1-1.414 0l-1.586-1.586a1 1 0 0 1 0-1.414l5.586-5.586a1 1 0 0 1 1.414 0l1.586 1.586a1 1 0 0 1 0 1.414z\"></path><path d=\"m18 13-1.375-6.874a1 1 0 0 0-.746-.776L3.235 2.028a1 1 0 0 0-1.207 1.207L5.35 15.879a1 1 0 0 0 .776.746L13 18\"></path><path d=\"m2.3 2.3 7.286 7.286\"></path><circle cx=\"11\" cy=\"11\" r=\"2\"></circle></svg>", "play": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polygon points=\"6 3 20 12 6 21 6 3\"></polygon></svg>", "podcast": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16.85 18.58a9 9 0 1 0-9.7 0\"></path><path d=\"M8 14a5 5 0 1 1 8 0\"></path><circle cx=\"12\" cy=\"11\" r=\"1\"></circle><path d=\"M13 17a1 1 0 1 0-2 0l.5 4.5a.5.5 0 1 0 1 0Z\"></path></svg>", "rotate-ccw": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"></path><path d=\"M3 3v5h5\"></path></svg>", "settings": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z\"></path><circle cx=\"12\" cy=\"12\" r=\"3\"></circle></svg>", "trending-up": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"22 7 13.5 15.5 8.5 10.5 2 17\"></polyline><polyline points=\"16 7 22 7 22 13\"></polyline></svg>", "tv": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"20\" height=\"15\" x=\"2\" y=\"7\" rx=\"2\" ry=\"2\"></rect><polyline points=\"17 2 12 7 7 2\"></polyline></svg>", "youtube": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17\"></path><path d=\"m10 15 5-3-5-3z\"></path></svg>"};
+var ICONS = {"activity": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2\"></path></svg>", "book-open": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 7v14\"></path><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"></path></svg>", "chevron-down": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m6 9 6 6 6-6\"></path></svg>", "chevron-left": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m15 18-6-6 6-6\"></path></svg>", "chevron-right": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 18 6-6-6-6\"></path></svg>", "chevron-up": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m18 15-6-6-6 6\"></path></svg>", "clock": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><polyline points=\"12 6 12 12 16 14\"></polyline></svg>", "film": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"></rect><path d=\"M7 3v18\"></path><path d=\"M3 7.5h4\"></path><path d=\"M3 12h18\"></path><path d=\"M3 16.5h4\"></path><path d=\"M17 3v18\"></path><path d=\"M17 7.5h4\"></path><path d=\"M17 16.5h4\"></path></svg>", "flame": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z\"></path></svg>", "home": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"></path><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"></path></svg>", "layers": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z\"></path><path d=\"m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65\"></path><path d=\"m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65\"></path></svg>", "list-checks": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m3 17 2 2 4-4\"></path><path d=\"m3 7 2 2 4-4\"></path><path d=\"M13 6h8\"></path><path d=\"M13 12h8\"></path><path d=\"M13 18h8\"></path></svg>", "lock": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\"></rect><path d=\"M7 11V7a5 5 0 0 1 10 0v4\"></path></svg>", "map": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z\"></path><path d=\"M15 5.764v15\"></path><path d=\"M9 3.236v15\"></path></svg>", "message-circle": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7.9 20A9 9 0 1 0 4 16.1L2 22Z\"></path></svg>", "pen-tool": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15.707 21.293a1 1 0 0 1-1.414 0l-1.586-1.586a1 1 0 0 1 0-1.414l5.586-5.586a1 1 0 0 1 1.414 0l1.586 1.586a1 1 0 0 1 0 1.414z\"></path><path d=\"m18 13-1.375-6.874a1 1 0 0 0-.746-.776L3.235 2.028a1 1 0 0 0-1.207 1.207L5.35 15.879a1 1 0 0 0 .776.746L13 18\"></path><path d=\"m2.3 2.3 7.286 7.286\"></path><circle cx=\"11\" cy=\"11\" r=\"2\"></circle></svg>", "play": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polygon points=\"6 3 20 12 6 21 6 3\"></polygon></svg>", "podcast": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16.85 18.58a9 9 0 1 0-9.7 0\"></path><path d=\"M8 14a5 5 0 1 1 8 0\"></path><circle cx=\"12\" cy=\"11\" r=\"1\"></circle><path d=\"M13 17a1 1 0 1 0-2 0l.5 4.5a.5.5 0 1 0 1 0Z\"></path></svg>", "rotate-ccw": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"></path><path d=\"M3 3v5h5\"></path></svg>", "settings": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z\"></path><circle cx=\"12\" cy=\"12\" r=\"3\"></circle></svg>", "trending-up": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"22 7 13.5 15.5 8.5 10.5 2 17\"></polyline><polyline points=\"16 7 22 7 22 13\"></polyline></svg>", "tv": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"20\" height=\"15\" x=\"2\" y=\"7\" rx=\"2\" ry=\"2\"></rect><polyline points=\"17 2 12 7 7 2\"></polyline></svg>", "volume-2": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z\"></path><path d=\"M16 9a5 5 0 0 1 0 6\"></path><path d=\"M19.364 18.364a9 9 0 0 0 0-12.728\"></path></svg>", "youtube": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17\"></path><path d=\"m10 15 5-3-5-3z\"></path></svg>"};
 function icons(){
   var els = document.querySelectorAll('i[data-lucide]');
   for (var k = 0; k < els.length; k++){
@@ -1336,7 +1433,7 @@ function homeScreen(s){
 
   '<h2 class="mtL">Modules</h2>' +
   '<div class="grid3">' +
-    modCard('tones', 'activity', 'Tone Trainer', 'The non-negotiable first skill. Pitch curves + minimal pairs.', 3) +
+    modCard('tones', 'activity', 'Tone Trainer', 'Hear it, hum it, pick the tone \u2014 audio + minimal pairs.', 3) +
     modCard('vocab', 'book-open', 'Vocabulary', VOCAB.length + ' frequency-first words in 12 themes.', 5) +
     modCard('phrases', 'message-circle', 'Phrases', 'Real dialogues with tap-to-break-down words.', 4) +
     modCard('characters', 'pen-tool', 'Characters', 'Stroke order for the 150 essential characters.', 5) +
@@ -1389,8 +1486,8 @@ function vocabScreen(s){
       '<span class="zh">' + v.character + '</span>' +
       '<div class="vocMain"><div>' + pyHTML(v) + (lr ? ' <span class="tiny gold">●</span>' : '') + '</div>' +
       '<div class="small dim">' + esc(v.english) + '</div>' +
-      (open ? '<div class="vocEx"><span class="zh">' + esc(v.exampleChinese) + '</span><br><span class="small dim">' + esc(v.exampleEnglish) + '</span></div>' : '') +
-      '</div><i data-lucide="' + (open ? 'chevron-up' : 'chevron-down') + '" style="color:var(--muted)"></i></div>';
+      (open ? '<div class="vocEx">' + spkBtn(v.exampleChinese, 'sm') + ' <span class="zh">' + esc(v.exampleChinese) + '</span><br><span class="small dim">' + esc(v.exampleEnglish) + '</span></div>' : '') +
+      '</div>' + spkBtn(v.character, 'sm') + '<i data-lucide="' + (open ? 'chevron-up' : 'chevron-down') + '" style="color:var(--muted)"></i></div>';
   }).join('') +
   (list.length ? '' : '<p class="dim center mt">No words match.</p>') +
   '</div></div>';
@@ -1443,8 +1540,9 @@ function flashScreen(s){
     : '<div class="bigen">' + esc(v.english) + '</div><div class="small dim">' + esc(CATS.filter(function(c){return c[0]===v.category;})[0][1]) + '</div>';
   var back = '<div class="bigzh zh" style="font-size:64px">' + v.character + '</div>' +
     '<div>' + pyHTML(v, 24) + '</div>' +
+    '<div class="audioRow">' + spkBtn(v.character) + spkBtn(v.character, 'sm', true) + '</div>' +
     (DB.settings.english ? '<div style="font-size:21px;font-weight:600">' + esc(v.english) + '</div>' : '') +
-    '<div class="vocEx" style="width:100%"><span class="zh">' + esc(v.exampleChinese) + '</span>' +
+    '<div class="vocEx" style="width:100%">' + spkBtn(v.exampleChinese, 'sm') + ' <span class="zh">' + esc(v.exampleChinese) + '</span>' +
     (DB.settings.english ? '<br><span class="small dim">' + esc(v.exampleEnglish) + '</span>' : '') + '</div>';
   s.innerHTML = '<div class="fadeUp">' +
   '<div class="row mb" style="max-width:560px;margin:0 auto 14px;gap:12px">' +
@@ -1510,7 +1608,7 @@ function quizScreen(s){
     }).join('') + '</div>';
   } else if (QS.mode === 2){
     body = '<div class="card center"><p class="dim small" style="margin:0">What does this mean?</p><div class="bigGlyph zh" style="font-size:72px;margin-top:6px">' + q.v.character + '</div>' +
-    '<div class="mt">' + toneRowFor(q.v.pinyin, 22) + '</div></div>' +
+    '<div class="mt">' + toneRowFor(q.v.pinyin, 22) + '</div><div class="audioRow">' + spkBtn(q.v.character) + '</div></div>' +
     '<div class="grid2 mt">' + q.opts.map(function(o, k){
       return '<button class="quizOpt" data-act="quizPick" data-k="' + k + '">' + esc(o.english) + '</button>';
     }).join('') + '</div>';
@@ -1518,6 +1616,7 @@ function quizScreen(s){
     body = '<div class="card center"><p class="dim small" style="margin:0">Type the pinyin (tap the tone after each syllable)</p>' +
     '<div class="bigGlyph zh" style="font-size:66px;margin-top:6px">' + q.v.character + '</div>' +
     '<p class="small dim" style="margin:6px 0 0">' + esc(q.v.english) + '</p></div>' +
+    '<div class="audioRow">' + spkBtn(q.v.character, 'lg') + spkBtn(q.v.character, 'sm', true) + '</div>' +
     '<input class="bigInput mt" id="pinIn" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="type letters… (v = ü)">' +
     '<div class="kbdRow mt">' + [1,2,3,4,5].map(function(t){
       return '<button class="pinKey" data-act="pinTone" data-t="' + t + '">' + (t === 5 ? '·' : 'a'.replace('a', applyToneMark('a', t))) + '<small>' + (t === 5 ? 'neutral' : 'tone ' + t) + '</small></button>';
@@ -1527,7 +1626,7 @@ function quizScreen(s){
   } else {
     body = '<div class="card center"><p class="dim small" style="margin:0">Which tone does this syllable carry?</p>' +
     '<div class="bigGlyph zh" style="font-size:72px;margin-top:6px">' + q.ch + '</div>' +
-    '<h2 style="margin:8px 0 0">' + esc(q.base) + '</h2><p class="small dim" style="margin:4px 0 0">' + esc(q.v.english) + ' · ' + esc(q.v.character) + '</p></div>' +
+    '<h2 style="margin:8px 0 0">' + esc(q.base) + '</h2><p class="small dim" style="margin:4px 0 0">' + esc(q.v.english) + ' · ' + esc(q.v.character) + '</p><div class="audioRow">' + spkBtn(q.ch, 'lg') + '</div></div>' +
     '<div class="toneGrid mt">' + [1,2,3,4,5].map(function(t){
       return '<button class="toneBtn" data-act="quizTone" data-t="' + t + '">' + toneSVG(t, 34) + '<span>' + (t === 5 ? '·' : applyToneMark(q.base, t)) + '</span></button>';
     }).join('') + '</div>';
@@ -1613,7 +1712,7 @@ function charsScreen(s){
   var c = CHARS[CS.idx], guided = !!STROKES[c.ch], st = DB.stats.chars[c.ch];
   s.innerHTML = '<div class="fadeUp" style="max-width:560px;margin:0 auto">' +
   '<div class="spread mb"><div><span class="zh" style="font-size:30px;font-weight:700">' + c.ch + '</span> ' +
-    '<span class="py">' + esc(c.py) + '</span> ' + toneRowFor(c.py, 20) + '<div class="small dim">' + esc(c.en) + ' · ' + c.st + ' strokes</div></div>' +
+    '<span class="py">' + esc(c.py) + '</span> ' + toneRowFor(c.py, 20) + ' ' + spkBtn(c.ch, 'sm') + '<div class="small dim">' + esc(c.en) + ' · ' + c.st + ' strokes</div></div>' +
     '<span class="badge ' + (guided ? 'guided' : 'trace') + '">' + (guided ? 'Guided strokes' : 'Trace mode') + '</span></div>' +
   '<div class="canvasWrap"><canvas id="strokeCv"></canvas></div>' +
   '<div class="cvCaption" id="cvCap"></div>' +
@@ -1895,7 +1994,7 @@ function traceCheck(){
 /* ============================================================
    SCREEN: TONE TRAINER
    ============================================================ */
-var TS = { q:null, locked:false, unlockShown:false };
+var TS = { q:null, locked:false, unlockShown:false, spoken:null };
 function pairsUnlocked(){ return DB.stats.tone.total >= 30 || DB.stats.tone.streak >= 8 || DB.stats.tone.best >= 8; }
 function toneNext(){
   var usePair = pairsUnlocked() && Math.random() < 0.5;
@@ -1926,15 +2025,19 @@ function tonesScreen(s){
     '<p class="dim small" style="margin:0">This character\u2019s syllable is…</p>' +
     '<div class="bigGlyph zh" style="font-size:78px;margin-top:6px">' + q.ch + '</div>' +
     '<h2 style="margin:6px 0 0">' + esc(q.base) + '</h2>' +
-    '<p class="small dim" style="margin:4px 0 0">' + esc(q.en) + '</p></div>' +
+    '<p class="small dim" style="margin:4px 0 0">' + esc(q.en) + '</p><div class="audioRow">' + spkBtn(q.ch, 'lg') + spkBtn(q.ch, 'sm', true) + '</div></div>' +
   '<div class="toneGrid mt">' + [1,2,3,4,5].map(function(tt){
     return '<button class="toneBtn" data-act="toneAns" data-t="' + tt + '">' + toneSVG(tt, 34) +
       '<span>' + (tt === 5 ? '· ' + esc(q.base) : esc(applyToneMark(q.base.replace(/ü/g,'v'), tt))) + '</span>' +
       '<span class="tiny dim">' + TONE_NAMES[tt] + '</span></button>';
-  }).join('') + '</div>' +
+  }).join('') + '</div>' + humRowHTML() +
   '<div id="toneFam" class="mt"></div>' +
-  '<p class="small dim center mt">No audio needed: you are training tone <i>recall</i> — which pitch shape belongs to which word. That is the skill that makes listening click.</p>' +
+  '<p class="small dim center mt">Tap ▶, listen, then pick the tone you heard. Ear first, eyes second — that is how listening clicks.</p>' +
   '</div>';
+  if (DB.settings.autoSay && AU.ok && TS.spoken !== TS.q){
+    TS.spoken = TS.q;
+    later(function(){ speak(TS.q.ch); }, 300);
+  }
 }
 
 /* ============================================================
@@ -1962,9 +2065,11 @@ function phrasesScreen(s){
       var tk = L.toks[PS.sel[1]];
       info = '<div class="tokInfo"><b class="zh">' + tk[0] + '</b> · <span class="py">' + esc(tk[1]) + '</span> ' + toneRowFor(tk[1], 18) + ' — ' + esc(tk[2]) + '</div>';
     }
-    return '<div class="phraseLine"><div class="zhline">' + zh + '</div>' +
+    var hz = L.toks.map(function(tk){ return tk[0]; }).join('');
+    return '<div class="phraseLine"><div class="spread" style="align-items:flex-start;gap:10px"><div style="flex:1;min-width:0"><div class="zhline">' + zh + '</div>' +
       '<div class="py" style="margin-top:4px">' + py + '</div>' +
-      (DB.settings.english ? '<div class="small dim" style="margin-top:3px">' + esc(L.en) + '</div>' : '') + info + '</div>';
+      (DB.settings.english ? '<div class="small dim" style="margin-top:3px">' + esc(L.en) + '</div>' : '') + '</div>' +
+      '<div class="row" style="gap:6px;flex-shrink:0">' + spkBtn(hz) + spkBtn(hz, 'sm', true) + '</div></div>' + info + '</div>';
   }).join('') + '</div>' +
   '<div class="tipCard mt"><b class="gold">Pattern spotlight</b><p style="margin:6px 0 0;font-size:14.5px">Mandarin is Subject–Verb–Object, just like English: <span class="zh">我爱你</span> <span class="py">wǒ ài nǐ</span> = I-love-you. The other big pattern is topic-comment: <span class="zh">北京，我去过</span> — “Beijing, I have been (there).” Notice these shapes in the lines above.</p></div>' +
   '<p class="small dim mt">' + esc(SANDHI_NOTE) + '</p>' +
@@ -2101,6 +2206,25 @@ function settingsScreen(s){
       return '<button class="seg' + (String(g[key]) === String(o[0]) ? ' active' : '') + '" data-act="setSeg" data-k="' + key + '" data-v="' + o[0] + '">' + o[1] + '</button>';
     }).join('') + '</div></div>';
   }
+  var audioCard;
+  if (AU.ok){
+    var vsel = '';
+    if (AU.voices.length > 1){
+      vsel = '<div class="setRow"><b>Chinese voice</b><select class="voiceSel" id="voiceSel">' + AU.voices.map(function(v){
+        return '<option value="' + esc(v.voiceURI) + '"' + (AU.voice && AU.voice.voiceURI === v.voiceURI ? ' selected' : '') + '>' + esc(v.name) + ' (' + esc(v.lang) + ')</option>';
+      }).join('') + '</select></div>';
+    }
+    audioCard = '<div class="card mt"><h3 style="margin-top:0">Audio · text-to-speech</h3>' +
+      tog('autoSay', 'Auto-pronounce', 'Speak words on card flips, answer reveals and new tone questions.') +
+      seg('speed', 'Speech speed', [['slow','Slow'],['normal','Normal']]) +
+      vsel +
+      '<div class="setRow"><div><b>Test the voice</b><div class="small dim">' +
+      (AU.voices.length ? 'Using your device’s built-in Chinese voice — no internet needed.' :
+        'No Chinese voice listed — audio may use a generic accent. On iPad: Settings → Accessibility → Spoken Content → Voices → Chinese.') +
+      '</div></div><button class="btn sm" data-act="audioTest"><i data-lucide="volume-2"></i>你好!</button></div></div>';
+  } else {
+    audioCard = '<div class="card mt"><h3 style="margin-top:0">Audio</h3><p class="small dim" style="margin:0">Speech synthesis is not available in this browser, so listening buttons are hidden.</p></div>';
+  }
   s.innerHTML = '<div class="fadeUp" style="max-width:640px;margin:0 auto"><div class="card">' +
   tog('pinyin', 'Show pinyin on card fronts', 'Hide it to force pure character reading.') +
   tog('english', 'Show English translations', 'Hide for deeper immersion once you are ready.') +
@@ -2109,9 +2233,17 @@ function settingsScreen(s){
   seg('goal', 'Daily review goal', [[10,'10'],[20,'20'],[50,'50']]) +
   seg('front', 'Flashcard front', [['character','汉字'],['english','English']]) +
   '</div>' +
+  audioCard +
   '<div class="card mt"><h3>About</h3><p class="small dim" style="margin:0">墨语 Ink Mandarin · everything runs on this device. Progress saves automatically on this device — no account needed. Works inside Claude and in any browser.</p></div>' +
   '<button class="btn block mt" style="color:var(--bad)" data-act="resetAll"><i data-lucide="rotate-ccw"></i>Reset all progress</button>' +
   '</div>';
+  var vs = document.getElementById('voiceSel');
+  if (vs) vs.addEventListener('change', function(){
+    DB.settings.voiceURI = vs.value;
+    save();
+    for (var i = 0; i < AU.voices.length; i++) if (AU.voices[i].voiceURI === vs.value) AU.voice = AU.voices[i];
+    speak('你好！');
+  });
 }
 function applySettings(){
   document.body.classList.toggle('dark', !!DB.settings.dark);
@@ -2137,7 +2269,7 @@ var ACTIONS = {
   startCards: function(){ startReviewSession(); },
   frontSet: function(el){ DB.settings.front = el.getAttribute('data-v'); save(); render(); },
   flashStart: function(){ startReviewSession(); },
-  flip: function(){ if (FS.stage === 'run'){ FS.flipped = !FS.flipped; render(); } },
+  flip: function(){ if (FS.stage === 'run'){ FS.flipped = !FS.flipped; render(); if (FS.flipped){ var v = VOCAB[+FS.queue[FS.idx].slice(1)]; autoSay(v.character); } } },
   rate: function(el){
     if (FS.stage !== 'run') return;
     var id = FS.queue[FS.idx], r = +el.getAttribute('data-r');
@@ -2173,6 +2305,7 @@ var ACTIONS = {
         var btns = document.querySelectorAll('[data-act="quizPick"]');
         if (btns[q.ans]) btns[q.ans].classList.add('reveal');
       }
+      autoSay(q.v.character);
     });
   },
   quizTone: function(el){
@@ -2183,6 +2316,7 @@ var ACTIONS = {
         var btns = document.querySelectorAll('[data-act="quizTone"]');
         for (var i = 0; i < btns.length; i++) if (+btns[i].getAttribute('data-t') === q.tone) btns[i].classList.add('reveal');
       }
+      autoSay(q.ch);
     });
   },
   pinTone: function(el){
@@ -2218,12 +2352,13 @@ var ACTIONS = {
         fb.style.color = correct ? 'var(--ok)' : 'var(--bad)';
         fb.innerHTML = (correct ? '✓ ' : '✗ Correct: ') + '<b>' + esc(q.v.pinyin) + '</b>';
       }
+      autoSay(q.v.character);
     });
   },
   vocCat: function(el){ VS.cat = el.getAttribute('data-cat'); VS.open = -1; render(); },
-  vocOpen: function(el){ var i = +el.getAttribute('data-i'); VS.open = VS.open === i ? -1 : i; render(); },
+  vocOpen: function(el){ var i = +el.getAttribute('data-i'); VS.open = VS.open === i ? -1 : i; if (VS.open === i) autoSay(VOCAB[i].character); render(); },
   charFilter: function(el){ CS.filter = el.getAttribute('data-f'); render(); },
-  charOpen: function(el){ CS.idx = +el.getAttribute('data-i'); CS.view = 'detail'; render(); },
+  charOpen: function(el){ CS.idx = +el.getAttribute('data-i'); CS.view = 'detail'; autoSay(CHARS[CS.idx].ch); render(); },
   charDemo: function(){ charDemo(); },
   charPractice: function(){
     cancelAnimationFrame(CS.raf);
@@ -2257,14 +2392,15 @@ var ACTIONS = {
     el.classList.add(correct ? 'ok' : 'bad');
     var btns = document.querySelectorAll('[data-act="toneAns"]');
     for (var i = 0; i < btns.length; i++) if (!correct && +btns[i].getAttribute('data-t') === q.tone) btns[i].classList.add('reveal');
+    autoSay(q.ch);
     var fam = document.getElementById('toneFam');
     if (fam){
       var inner = '<div class="tokInfo">' + (correct ? '✓ ' : '✗ ') + '<b class="zh">' + q.ch + '</b> is <b>' +
         (q.tone === 5 ? q.base + ' (neutral)' : esc(applyToneMark(q.base.replace(/ü/g,'v'), q.tone))) + '</b> — ' + esc(q.en);
       if (q.fam){
-        inner += '<div class="tiny dim" style="margin-top:6px">One sound, five words: ' + q.fam.items.map(function(it){
-          return '<span class="zh">' + it[0] + '</span> ' + esc(it[1]) + ' <i>' + esc(it[2]) + '</i>';
-        }).join(' · ') + '</div>';
+        inner += '<div class="tiny dim" style="margin-top:6px">One sound, different words — tap each to hear it: ' + q.fam.items.map(function(it){
+          return '<button class="catChip" style="padding:3px 9px;font-size:12px;display:inline-flex;gap:5px;align-items:center" data-act="speak" data-say="' + it[0] + '"><span class="zh">' + it[0] + '</span>' + esc(it[1]) + '</button>';
+        }).join(' ') + '</div>';
       }
       fam.innerHTML = inner + '</div>';
     }
@@ -2276,6 +2412,10 @@ var ACTIONS = {
     if (!PS.breakdown){ PS.breakdown = true; }
     var li = +el.getAttribute('data-li'), k = +el.getAttribute('data-k');
     PS.sel = (PS.sel && PS.sel[0] === li && PS.sel[1] === k) ? null : [li, k];
+    if (PS.sel){
+      var ctxObj = PHRASES.filter(function(p){ return p.id === PS.ctx; })[0] || PHRASES[0];
+      autoSay(ctxObj.lines[li].toks[k][0]);
+    }
     DB.stats.phrases[PS.ctx + '_' + li] = 1;
     logAct(1); save(); render();
   },
@@ -2290,6 +2430,12 @@ var ACTIONS = {
     DB.settings[k] = (k === 'goal') ? +v : v;
     save(); applySettings(); render();
   },
+  speak: function(el){
+    var ok = speak(el.getAttribute('data-say'), el.getAttribute('data-slow') ? 0.6 : 0);
+    if (ok) flashPlaying(el);
+  },
+  hum: function(el){ humTone(+el.getAttribute('data-t')); },
+  audioTest: function(el){ if (speak('你好！我是你的中文老师。')) flashPlaying(el); },
   resetAll: function(el){
     if (el.getAttribute('data-armed')){
       DB = freshDB();
@@ -2323,6 +2469,7 @@ function boot(){
 }
 function boot2(){
   applySettings();
+  audioInit();
   document.body.addEventListener('click', onTap);
   document.getElementById('backBtn').addEventListener('click', function(){ go('home'); });
   document.getElementById('settingsBtn').addEventListener('click', function(){ go('settings'); });
@@ -2401,6 +2548,8 @@ function runSelfTest(){
   LEVELS.forEach(function(lv){ chk(MEDIA[lv] && MEDIA[lv].sections.length > 0, 'media missing ' + lv); });
   chk(PATH.length === 8, 'PATH length ' + PATH.length);
   chk(TIPS.length >= 5, 'TIPS too few');
+  chk(typeof speak === 'function' && typeof humTone === 'function' && typeof spkBtn === 'function', 'audio engine missing');
+  chk(spkBtn('\u4f60') === '', 'spkBtn must be empty without TTS');
 
   chk(applyToneMark('ni', 3) === 'nǐ', 'applyToneMark ni3 → ' + applyToneMark('ni', 3));
   chk(applyToneMark('lv', 4) === 'lǜ', 'applyToneMark lv4 → ' + applyToneMark('lv', 4));
