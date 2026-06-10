@@ -1,0 +1,2443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>墨语 Ink Mandarin — Learn Chinese</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Inter:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF7F2; --ink:#1C1C1E; --red:#C0392B; --gold:#C9A227;
+  --card:#FFFFFF; --line:#E8E0D5; --muted:#8A8378; --soft:#F3EEE6;
+  --ok:#2E8B57; --okbg:#E8F5EE; --bad:#C0392B; --badbg:#FBEAE8;
+  --shadow:0 2px 10px rgba(28,28,30,.06), 0 1px 3px rgba(28,28,30,.05);
+  --shadow-lg:0 10px 30px rgba(28,28,30,.10);
+  --flip:.55s; --rad:18px; --radS:12px;
+  --tabh:64px; --headh:58px;
+}
+body.dark{
+  --bg:#171411; --ink:#F1EAE0; --card:#221E19; --line:#3A332B;
+  --muted:#9C9387; --soft:#2A251F; --okbg:#1E3328; --badbg:#3A211E;
+  --shadow:0 2px 10px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.3);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+html{height:100%;}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:16px; line-height:1.5;
+  min-height:100vh; min-height:100dvh;
+  overscroll-behavior-y:none;
+  transition:background .3s,color .3s;
+}
+.zh{font-family:'Noto Serif SC','Songti SC','STSong','PingFang SC',serif;}
+.py{font-family:'Inter',sans-serif; font-style:italic; color:var(--muted); font-size:.92em;}
+button{font-family:inherit; color:inherit;}
+/* ---------- Header ---------- */
+header{
+  position:fixed; top:0; left:0; right:0; height:var(--headh);
+  padding-top:env(safe-area-inset-top);
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  background:var(--bg);
+  border-bottom:1px solid var(--line);
+  display:flex; align-items:center; justify-content:space-between;
+  padding-left:18px; padding-right:14px; z-index:50;
+}
+.brand{display:flex; align-items:baseline; gap:8px; min-width:150px;}
+.brand .zh{font-size:24px; font-weight:700; color:var(--red);}
+.brand .en{font-size:13px; font-weight:600; letter-spacing:.4px; color:var(--muted); text-transform:uppercase;}
+#headTitle{font-weight:600; font-size:16px; flex:1; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.headRight{display:flex; align-items:center; gap:6px; min-width:150px; justify-content:flex-end;}
+.streakChip{display:flex; align-items:center; gap:4px; background:var(--soft); border:1px solid var(--line);
+  border-radius:999px; padding:6px 12px; font-weight:600; font-size:14px; color:var(--gold);}
+.iconBtn{
+  width:46px; height:46px; border-radius:14px; border:1px solid var(--line);
+  background:var(--card); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:var(--shadow);
+}
+.iconBtn:active{transform:scale(.94);}
+.iconBtn svg{width:22px;height:22px;color:var(--ink);}
+.backBtn{border:none; background:transparent; box-shadow:none; width:42px;}
+.backBtn svg{color:var(--red); width:26px; height:26px;}
+/* ---------- Screen container ---------- */
+#screen{
+  padding:calc(var(--headh) + env(safe-area-inset-top) + 16px) 20px calc(var(--tabh) + env(safe-area-inset-bottom) + 24px);
+  max-width:980px; margin:0 auto;
+  animation:fadeIn .2s ease;
+}
+@keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+/* ---------- Tab bar ---------- */
+nav#tabbar{
+  position:fixed; left:0; right:0; bottom:0; z-index:50;
+  height:calc(var(--tabh) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);
+  background:var(--card); border-top:1px solid var(--line);
+  display:flex; align-items:stretch; justify-content:space-around;
+}
+nav#tabbar button{
+  flex:1; max-width:130px; border:none; background:none; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  color:var(--muted); font-size:11px; font-weight:500; padding:6px 0 8px;
+}
+nav#tabbar button svg{width:23px; height:23px;}
+nav#tabbar button.active{color:var(--red);}
+nav#tabbar button.active svg{color:var(--red);}
+/* ---------- Cards & layout ---------- */
+.card{background:var(--card); border:1px solid var(--line); border-radius:var(--rad);
+  box-shadow:var(--shadow); padding:20px;}
+.cardTight{padding:14px 16px;}
+h1{font-size:26px; font-weight:600; margin:6px 0 4px;}
+h2{font-size:19px; font-weight:600; margin:0 0 10px;}
+h3{font-size:16px; font-weight:600; margin:0 0 6px;}
+.sub{color:var(--muted); font-size:14px; margin:0 0 16px;}
+.grid2{display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:14px;}
+.grid3{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px;}
+.row{display:flex; align-items:center; gap:10px;}
+.spread{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.wrap{flex-wrap:wrap;}
+.mt{margin-top:16px;} .mtL{margin-top:26px;} .mb{margin-bottom:16px;}
+.dim{color:var(--muted);} .small{font-size:13px;} .tiny{font-size:12px;}
+.gold{color:var(--gold);} .redTx{color:var(--red);} .okTx{color:var(--ok);}
+.chip{display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:999px;
+  background:var(--soft); border:1px solid var(--line); font-size:13px; font-weight:500; color:var(--ink);}
+.chip.gold{color:var(--gold);} .chip.red{background:var(--red); color:#fff; border-color:var(--red);}
+.estimate{display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color:var(--muted); font-weight:500;}
+.estimate svg{width:14px; height:14px;}
+.divider{height:1px; background:var(--line); margin:14px 0;}
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:50px; padding:12px 22px; border-radius:14px; border:1px solid var(--line);
+  background:var(--card); font-size:15.5px; font-weight:600; cursor:pointer;
+  box-shadow:var(--shadow); transition:transform .12s ease, background .15s;
+}
+.btn:active{transform:scale(.96);}
+.btn.primary{background:var(--red); color:#fff; border-color:var(--red);}
+.btn.gold{background:var(--gold); color:#fff; border-color:var(--gold);}
+.btn.ghost{background:transparent; box-shadow:none;}
+.btn.block{width:100%;}
+.btn.sm{min-height:42px; padding:8px 16px; font-size:14px; border-radius:12px;}
+.btn:disabled{opacity:.45; pointer-events:none;}
+.btn svg{width:18px; height:18px;}
+/* ---------- Module grid (home) ---------- */
+.modCard{display:flex; flex-direction:column; gap:8px; padding:18px; border-radius:var(--rad);
+  background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow); cursor:pointer;
+  transition:transform .15s ease;}
+.modCard:active{transform:scale(.97);}
+.modIcon{width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center;
+  background:var(--soft); color:var(--red);}
+.modIcon svg{width:23px; height:23px;}
+.modCard h3{margin:2px 0 0;}
+.modCard p{margin:0; font-size:13px; color:var(--muted); line-height:1.45;}
+/* ---------- Tone contours ---------- */
+.tcurve{display:inline-block; vertical-align:middle;}
+.tcurve path{stroke:var(--red); stroke-width:2.6; fill:none; stroke-linecap:round;}
+.tcurve circle{fill:var(--red);}
+.toneRow{display:inline-flex; gap:3px; align-items:center;}
+/* ---------- Vocabulary ---------- */
+.catBar{display:flex; gap:8px; overflow-x:auto; padding:4px 2px 10px; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
+.catBar::-webkit-scrollbar{display:none;}
+.catChip{white-space:nowrap; padding:9px 16px; border-radius:999px; border:1px solid var(--line);
+  background:var(--card); font-size:14px; font-weight:500; cursor:pointer; color:var(--ink);}
+.catChip.active{background:var(--ink); color:var(--bg); border-color:var(--ink);}
+body.dark .catChip.active{background:var(--gold); color:#1C1C1E; border-color:var(--gold);}
+.vocRow{display:flex; align-items:center; gap:14px; padding:13px 16px; background:var(--card);
+  border:1px solid var(--line); border-radius:var(--radS); box-shadow:var(--shadow); cursor:pointer;}
+.vocRow .zh{font-size:30px; font-weight:700; min-width:74px;}
+.vocMain{flex:1; min-width:0;}
+.vocEx{margin-top:10px; padding:12px 14px; background:var(--soft); border-radius:10px; font-size:14.5px; line-height:1.7;}
+.searchBox{width:100%; min-height:48px; padding:12px 16px; border-radius:13px; border:1px solid var(--line);
+  background:var(--card); font-size:15px; color:var(--ink); outline:none; font-family:inherit;}
+.searchBox:focus{border-color:var(--gold);}
+/* ---------- Flashcards ---------- */
+.flipWrap{perspective:1400px; max-width:560px; margin:0 auto;}
+.flipCard{position:relative; width:100%; min-height:330px; transform-style:preserve-3d;
+  transition:transform var(--flip) cubic-bezier(.4,.1,.2,1); cursor:pointer;}
+.flipCard.flipped{transform:rotateY(180deg);}
+.face{position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  background:var(--card); border:1px solid var(--line); border-radius:22px; box-shadow:var(--shadow-lg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:26px; text-align:center;}
+.face.back{transform:rotateY(180deg);}
+.face .bigzh{font-size:84px; font-weight:700; line-height:1.15;}
+.face .bigen{font-size:30px; font-weight:600;}
+.rateRow{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; max-width:560px; margin:18px auto 0;}
+.rateBtn{display:flex; flex-direction:column; gap:2px; min-height:62px; border-radius:14px; border:1px solid var(--line);
+  background:var(--card); font-weight:600; font-size:15px; cursor:pointer; box-shadow:var(--shadow); align-items:center; justify-content:center;}
+.rateBtn span.iv{font-size:11.5px; font-weight:500; color:var(--muted);}
+.rateBtn.again{color:var(--bad);} .rateBtn.hard{color:#B8860B;} .rateBtn.good{color:var(--ok);} .rateBtn.easy{color:#2563A8;}
+.rateBtn:active{transform:scale(.95);}
+.progressBar{height:7px; border-radius:99px; background:var(--soft); overflow:hidden; flex:1;}
+.progressBar > div{height:100%; background:var(--red); border-radius:99px; transition:width .3s ease;}
+/* ---------- Quiz ---------- */
+.quizOpt{width:100%; min-height:60px; padding:14px 18px; border-radius:14px; border:1.5px solid var(--line);
+  background:var(--card); font-size:17px; font-weight:500; cursor:pointer; box-shadow:var(--shadow);
+  display:flex; align-items:center; justify-content:center; gap:10px; text-align:center;}
+.quizOpt .zh{font-size:26px; font-weight:700;}
+.quizOpt:active{transform:scale(.97);}
+.quizOpt.ok{animation:pulseOk .55s ease; border-color:var(--ok); background:var(--okbg);}
+.quizOpt.bad{animation:shakeBad .45s ease; border-color:var(--bad); background:var(--badbg);}
+.quizOpt.reveal{border-color:var(--ok); background:var(--okbg);}
+@keyframes pulseOk{0%{box-shadow:0 0 0 0 rgba(46,139,87,.45);} 70%{box-shadow:0 0 0 16px rgba(46,139,87,0);} 100%{box-shadow:0 0 0 0 rgba(46,139,87,0);}}
+@keyframes shakeBad{0%,100%{transform:translateX(0);} 20%{transform:translateX(-9px);} 40%{transform:translateX(8px);} 60%{transform:translateX(-6px);} 80%{transform:translateX(4px);}}
+.toneBtn{display:flex; flex-direction:column; align-items:center; gap:6px; min-height:88px; padding:12px 8px;
+  border-radius:16px; border:1.5px solid var(--line); background:var(--card); cursor:pointer; box-shadow:var(--shadow);
+  font-weight:600; font-size:14px;}
+.toneBtn:active{transform:scale(.95);}
+.toneBtn.ok{animation:pulseOk .55s ease; border-color:var(--ok); background:var(--okbg);}
+.toneBtn.bad{animation:shakeBad .45s ease; border-color:var(--bad); background:var(--badbg);}
+.toneBtn.reveal{border-color:var(--ok); background:var(--okbg);}
+.toneGrid{display:grid; grid-template-columns:repeat(5,1fr); gap:10px;}
+@media (max-width:560px){.toneGrid{grid-template-columns:repeat(3,1fr);} .rateRow{grid-template-columns:repeat(2,1fr);}}
+.pinKey{min-width:52px; min-height:52px; border-radius:12px; border:1px solid var(--line); background:var(--card);
+  font-size:18px; font-weight:600; cursor:pointer; box-shadow:var(--shadow); display:flex; flex-direction:column; align-items:center; justify-content:center;}
+.pinKey small{font-size:10px; color:var(--muted); font-weight:500;}
+.pinKey:active{transform:scale(.93); background:var(--soft);}
+.bigInput{width:100%; min-height:58px; padding:14px 18px; font-size:22px; border-radius:14px;
+  border:1.5px solid var(--line); background:var(--card); color:var(--ink); outline:none; text-align:center; font-family:'Inter',sans-serif;}
+.bigInput:focus{border-color:var(--gold);}
+.bigInput.ok{animation:pulseOk .55s ease; border-color:var(--ok); background:var(--okbg);}
+.bigInput.bad{animation:shakeBad .45s ease; border-color:var(--bad); background:var(--badbg);}
+/* ---------- Characters ---------- */
+.charGrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(86px,1fr)); gap:10px;}
+.charTile{position:relative; aspect-ratio:1; border-radius:14px; border:1px solid var(--line); background:var(--card);
+  box-shadow:var(--shadow); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; cursor:pointer;}
+.charTile .zh{font-size:33px; font-weight:700;}
+.charTile .py{font-size:11px;}
+.charTile.done{border-color:var(--gold); background:linear-gradient(180deg, var(--card), var(--soft));}
+.charTile .dot{position:absolute; top:7px; right:7px; width:9px; height:9px; border-radius:99px; background:var(--gold);}
+.charTile .gdot{position:absolute; top:7px; left:7px; width:9px; height:9px; border-radius:99px; background:var(--ok); opacity:.8;}
+.canvasWrap{position:relative; width:min(440px, 92vw); margin:0 auto;}
+canvas#strokeCv{width:100%; aspect-ratio:1; display:block; border-radius:20px; border:1.5px solid var(--line);
+  background:var(--card); box-shadow:var(--shadow-lg); touch-action:none;}
+.cvCaption{text-align:center; min-height:24px; font-size:14px; color:var(--muted); margin-top:10px; font-weight:500;}
+.badge{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; padding:5px 11px; border-radius:99px;}
+.badge.guided{background:var(--okbg); color:var(--ok);}
+.badge.trace{background:var(--soft); color:var(--muted);}
+/* ---------- Phrases ---------- */
+.phraseLine{padding:15px 16px; background:var(--card); border:1px solid var(--line); border-radius:var(--radS); box-shadow:var(--shadow);}
+.phraseLine .zhline{font-size:23px; font-weight:700; line-height:1.7;}
+.tok{display:inline-block; padding:1px 3px; border-radius:7px; cursor:pointer;}
+.tok.on{background:var(--soft); outline:1.5px dashed var(--gold);}
+.tok.sel{background:var(--gold); color:#fff;}
+.tokInfo{margin-top:10px; padding:11px 14px; background:var(--soft); border-radius:10px; font-size:15px;}
+/* ---------- Media ---------- */
+.lvTabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+.mediaCard{position:relative; padding:16px; border-radius:var(--rad); background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow);}
+.mediaCard.locked{opacity:.62;}
+.mediaCard .why{margin:8px 0 0; font-size:13.5px; color:var(--muted); line-height:1.5;}
+.lockTag{position:absolute; top:13px; right:13px; display:flex; align-items:center; gap:4px; font-size:11.5px; font-weight:600;
+  color:var(--muted); background:var(--soft); padding:4px 9px; border-radius:99px;}
+.typeTag{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; text-transform:uppercase;
+  letter-spacing:.5px; color:var(--gold); margin-bottom:5px;}
+/* ---------- Path ---------- */
+.stage{display:flex; gap:15px; position:relative; padding-bottom:24px;}
+.stage:before{content:""; position:absolute; left:23px; top:50px; bottom:-2px; width:2px; background:var(--line);}
+.stage:last-child:before{display:none;}
+.stageNum{flex:none; width:47px; height:47px; border-radius:99px; display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:17px; background:var(--soft); border:2px solid var(--line); color:var(--muted); z-index:1;}
+.stage.done .stageNum{background:var(--gold); border-color:var(--gold); color:#fff;}
+.stage.current .stageNum{background:var(--red); border-color:var(--red); color:#fff;}
+.stage .card{flex:1;}
+.stage.current .card{border-color:var(--red); box-shadow:0 0 0 1.5px var(--red), var(--shadow-lg);}
+.stage.locked{opacity:.65;}
+/* ---------- Progress ---------- */
+.statGrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;}
+.statCard{padding:16px; border-radius:var(--rad); background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow); text-align:center;}
+.statCard .num{font-size:32px; font-weight:700; color:var(--red);}
+.statCard .lbl{font-size:12.5px; color:var(--muted); font-weight:500; margin-top:2px;}
+.weekChart{display:flex; align-items:flex-end; gap:9px; height:150px; padding:6px 4px 0;}
+.weekCol{flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end;}
+.weekBar{width:100%; max-width:42px; border-radius:8px 8px 4px 4px; background:linear-gradient(180deg,var(--red),#A93226); min-height:4px; transition:height .4s ease;}
+.weekCol .d{font-size:11.5px; color:var(--muted); font-weight:500;}
+/* ---------- Settings ---------- */
+.setRow{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:15px 2px; border-bottom:1px solid var(--line);}
+.setRow:last-child{border-bottom:none;}
+.toggle{position:relative; width:56px; height:33px; border-radius:99px; background:var(--line); border:none; cursor:pointer; transition:background .2s; flex:none;}
+.toggle:after{content:""; position:absolute; top:3px; left:3px; width:27px; height:27px; border-radius:99px; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.25); transition:left .2s;}
+.toggle.on{background:var(--ok);}
+.toggle.on:after{left:26px;}
+.segWrap{display:flex; gap:6px; background:var(--soft); border:1px solid var(--line); padding:4px; border-radius:12px;}
+.seg{min-height:40px; padding:6px 14px; border:none; border-radius:9px; background:transparent; font-weight:600; font-size:14px; cursor:pointer; color:var(--muted);}
+.seg.active{background:var(--card); color:var(--ink); box-shadow:var(--shadow);}
+/* misc */
+.tipCard{background:linear-gradient(135deg, rgba(201,162,39,.10), rgba(192,57,43,.07)); border:1px solid var(--line);
+  border-radius:var(--rad); padding:16px 18px;}
+.bigGlyph{font-size:54px; line-height:1;}
+.center{text-align:center;}
+.fadeUp{animation:fadeIn .25s ease;}
+.kbdRow{display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
+.noselect{user-select:none; -webkit-user-select:none;}
+@media (min-width:760px){
+  .face .bigzh{font-size:96px;}
+  #screen{padding-left:28px; padding-right:28px;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <button class="iconBtn backBtn" id="backBtn" style="display:none" aria-label="Back"><i data-lucide="chevron-left"></i></button>
+    <span class="zh noselect">墨语</span><span class="en">Ink Mandarin</span>
+  </div>
+  <div id="headTitle"></div>
+  <div class="headRight">
+    <span class="streakChip" id="streakChip" title="Daily streak"><i data-lucide="flame" style="width:16px;height:16px"></i><span id="streakNum">0</span></span>
+    <button class="iconBtn" id="settingsBtn" aria-label="Settings"><i data-lucide="settings"></i></button>
+  </div>
+</header>
+
+<main id="screen"></main>
+
+<nav id="tabbar">
+  <button data-tab="home"><i data-lucide="home"></i><span>Home</span></button>
+  <button data-tab="flashcards"><i data-lucide="layers"></i><span>Cards</span></button>
+  <button data-tab="quiz"><i data-lucide="list-checks"></i><span>Quiz</span></button>
+  <button data-tab="characters"><i data-lucide="pen-tool"></i><span>Characters</span></button>
+  <button data-tab="media"><i data-lucide="tv"></i><span>Media</span></button>
+  <button data-tab="progress"><i data-lucide="trending-up"></i><span>Progress</span></button>
+</nav>
+
+<noscript><div style="padding:120px 30px;text-align:center;font-family:sans-serif">Ink Mandarin needs JavaScript enabled to run.</div></noscript>
+
+<script id="app-js">
+(function(){
+'use strict';
+var IS_BROWSER = (typeof window !== 'undefined') && (typeof document !== 'undefined');
+
+/* ============================================================
+   PINYIN ENGINE — tone marks are the single source of truth
+   ============================================================ */
+var TONED = {
+  'ā':['a','1'],'á':['a','2'],'ǎ':['a','3'],'à':['a','4'],
+  'ē':['e','1'],'é':['e','2'],'ě':['e','3'],'è':['e','4'],
+  'ī':['i','1'],'í':['i','2'],'ǐ':['i','3'],'ì':['i','4'],
+  'ō':['o','1'],'ó':['o','2'],'ǒ':['o','3'],'ò':['o','4'],
+  'ū':['u','1'],'ú':['u','2'],'ǔ':['u','3'],'ù':['u','4'],
+  'ǖ':['v','1'],'ǘ':['v','2'],'ǚ':['v','3'],'ǜ':['v','4'],
+  'ü':['v','0']
+};
+var MARKS = { a:['ā','á','ǎ','à'], e:['ē','é','ě','è'], i:['ī','í','ǐ','ì'],
+              o:['ō','ó','ǒ','ò'], u:['ū','ú','ǔ','ù'], v:['ǖ','ǘ','ǚ','ǜ'] };
+
+function syllToNum(s){
+  var tone = '5', base = '';
+  var chars = Array.from(String(s).toLowerCase());
+  for (var k = 0; k < chars.length; k++){
+    var m = TONED[chars[k]];
+    if (m){ base += m[0]; if (m[1] !== '0') tone = m[1]; }
+    else base += chars[k];
+  }
+  return base + tone;
+}
+function wordToNum(p){
+  return String(p).toLowerCase().trim().split(/\s+/).filter(Boolean).map(syllToNum).join(' ');
+}
+function tonesOf(p){
+  return String(p).trim().split(/\s+/).filter(Boolean)
+    .map(function(s){ return syllToNum(s).slice(-1); }).join('-');
+}
+function syllBaseOnly(s){ return syllToNum(s).replace(/[1-5]$/, ''); }
+/* place a tone mark on a bare syllable (a > e > ou > last of i,u,v) */
+function applyToneMark(base, tone){
+  base = String(base).toLowerCase().replace(/ü/g, 'v');
+  if (tone === 5 || tone === '5') return base.replace(/v/g, 'ü');
+  var t = (+tone) - 1, idx = -1;
+  if (base.indexOf('a') > -1) idx = base.indexOf('a');
+  else if (base.indexOf('e') > -1) idx = base.indexOf('e');
+  else if (base.indexOf('ou') > -1) idx = base.indexOf('o');
+  else { for (var k = base.length - 1; k >= 0; k--){ if ('iouv'.indexOf(base[k]) > -1){ idx = k; break; } } }
+  if (idx < 0) return base.replace(/v/g, 'ü');
+  var ch = base[idx], marked = MARKS[ch] ? MARKS[ch][t] : ch;
+  return (base.slice(0, idx) + marked + base.slice(idx + 1)).replace(/v/g, 'ü');
+}
+/* normalize any user pinyin answer to canonical 'ni3 hao3' form */
+function normPinyinInput(raw){
+  var s = String(raw || '').toLowerCase().trim()
+    .replace(/ü/g, 'v').replace(/[''’\-·.]/g, ' ')
+    .replace(/([1-5])(?=[a-z])/g, '$1 ')
+    .replace(/\s+/g, ' ').trim();
+  if (!s) return '';
+  return s.split(' ').map(function(tok){
+    if (/[1-5]$/.test(tok)){
+      var b = '';
+      var arr = Array.from(tok);
+      for (var k = 0; k < arr.length; k++){ var m = TONED[arr[k]]; b += m ? m[0] : arr[k]; }
+      return b;
+    }
+    return syllToNum(tok);
+  }).join(' ');
+}
+
+/* ============================================================
+   TONE CONTOUR SVG (visual pitch curves, tones 1–5)
+   ============================================================ */
+var TONE_PATHS = {
+  1: 'M7 8 L53 8',
+  2: 'M9 27 L51 7',
+  3: 'M7 12 C15 28 28 31 35 23 C41 16 47 10 53 7',
+  4: 'M10 6 L50 29'
+};
+function toneSVG(t, w){
+  w = w || 26;
+  var h = Math.round(w * 0.6);
+  if (+t === 5 || t === '5'){
+    return '<svg class="tcurve" width="' + w + '" height="' + h + '" viewBox="0 0 60 36" aria-label="neutral tone"><circle cx="30" cy="19" r="5"/></svg>';
+  }
+  var d = TONE_PATHS[+t] || TONE_PATHS[1];
+  return '<svg class="tcurve" width="' + w + '" height="' + h + '" viewBox="0 0 60 36" aria-label="tone ' + t + '"><path d="' + d + '"/></svg>';
+}
+function toneRowFor(pinyin, w){
+  return '<span class="toneRow">' + tonesOf(pinyin).split('-').map(function(t){ return toneSVG(t, w || 22); }).join('') + '</span>';
+}
+var TONE_NAMES = { 1: '1st · high flat', 2: '2nd · rising', 3: '3rd · dip', 4: '4th · falling', 5: 'neutral · light' };
+
+/* ============================================================
+   SMALL UTILITIES
+   ============================================================ */
+function esc(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function todayStr(d){
+  d = d || new Date();
+  var m = d.getMonth() + 1, day = d.getDate();
+  return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+}
+function addDaysStr(n){ var d = new Date(); d.setDate(d.getDate() + n); return todayStr(d); }
+function dayDiff(aStr, bStr){
+  var a = new Date(aStr + 'T00:00:00'), b = new Date(bStr + 'T00:00:00');
+  return Math.round((b - a) / 86400000);
+}
+function shuffle(arr){
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+function clamp(x, lo, hi){ return Math.max(lo, Math.min(hi, x)); }
+
+/* ============================================================
+   VOCABULARY — 326 highest-frequency spoken words, 12 themes
+   { character, pinyin, tone, english, category, exampleChinese, exampleEnglish }
+   ============================================================ */
+function V(ch, py, tone, en, cat, exC, exE){
+  return { character: ch, pinyin: py, tone: tone, english: en, category: cat, exampleChinese: exC, exampleEnglish: exE };
+}
+var CATS = [
+  ['greetings','Greetings & Basics'], ['numbers','Numbers & Money'], ['colors','Colors'],
+  ['food','Food & Drink'], ['family','Family & People'], ['travel','Travel & Places'],
+  ['weather','Weather & Nature'], ['body','Body & Health'], ['objects','Daily Objects'],
+  ['emotions','Emotions & Qualities'], ['time','Time'], ['verbs','Action Verbs']
+];
+var VOCAB = [
+/* --- Greetings & Basics (37) --- */
+V('你好','nǐ hǎo','3-3','hello','greetings','你好，你叫什么名字？','Hello, what is your name?'),
+V('您好','nín hǎo','2-3','hello (polite)','greetings','王老师，您好！','Hello, Teacher Wang!'),
+V('早上好','zǎo shang hǎo','3-5-3','good morning','greetings','早上好！你吃早饭了吗？','Good morning! Have you had breakfast?'),
+V('晚上好','wǎn shang hǎo','3-5-3','good evening','greetings','晚上好，请进。','Good evening, please come in.'),
+V('晚安','wǎn ān','3-1','good night','greetings','我去睡觉了，晚安！','I am going to sleep — good night!'),
+V('再见','zài jiàn','4-4','goodbye','greetings','明天见，再见！','See you tomorrow, goodbye!'),
+V('谢谢','xiè xie','4-5','thank you','greetings','谢谢你的帮助。','Thank you for your help.'),
+V('不客气','bù kè qi','4-4-5','you\'re welcome','greetings','「谢谢！」「不客气。」','"Thanks!" "You\'re welcome."'),
+V('对不起','duì bu qǐ','4-5-3','sorry','greetings','对不起，我来晚了。','Sorry, I am late.'),
+V('没关系','méi guān xi','2-1-5','it\'s okay','greetings','没关系，慢慢来。','It\'s okay, take your time.'),
+V('请','qǐng','3','please','greetings','请坐，请喝茶。','Please sit, please have some tea.'),
+V('请问','qǐng wèn','3-4','excuse me, may I ask','greetings','请问，地铁站在哪里？','Excuse me, where is the metro station?'),
+V('是','shì','4','to be','greetings','我是学生。','I am a student.'),
+V('不','bù','4','no, not','greetings','我不是医生。','I am not a doctor.'),
+V('我','wǒ','3','I, me','greetings','我爱你。','I love you.'),
+V('你','nǐ','3','you','greetings','你好吗？','How are you?'),
+V('他','tā','1','he, him','greetings','他是我的朋友。','He is my friend.'),
+V('她','tā','1','she, her','greetings','她很漂亮。','She is very pretty.'),
+V('我们','wǒ men','3-5','we, us','greetings','我们一起去吧。','Let\'s go together.'),
+V('你们','nǐ men','3-5','you (plural)','greetings','你们好！','Hello, everyone!'),
+V('他们','tā men','1-5','they, them','greetings','他们是一家人。','They are one family.'),
+V('什么','shén me','2-5','what','greetings','这是什么？','What is this?'),
+V('谁','shéi','2','who','greetings','他是谁？','Who is he?'),
+V('哪里','nǎ lǐ','3-3','where','greetings','你在哪里？','Where are you?'),
+V('为什么','wèi shén me','4-2-5','why','greetings','你为什么学中文？','Why do you learn Chinese?'),
+V('怎么','zěn me','3-5','how','greetings','这个字怎么写？','How do you write this character?'),
+V('好的','hǎo de','3-5','okay','greetings','好的，没问题！','Okay, no problem!'),
+V('吗','ma','5','(question particle)','greetings','你是中国人吗？','Are you Chinese?'),
+V('名字','míng zi','2-5','name','greetings','你的名字很好听。','Your name sounds very nice.'),
+V('很','hěn','3','very','greetings','我很好。','I am very well.'),
+V('也','yě','3','also','greetings','我也喜欢茶。','I also like tea.'),
+V('和','hé','2','and; with','greetings','我和你是朋友。','You and I are friends.'),
+V('在','zài','4','at, in','greetings','我在家。','I am at home.'),
+V('没','méi','2','not (have)','greetings','我没有钱。','I don\'t have money.'),
+V('的','de','5','(possessive particle)','greetings','这是我的书。','This is my book.'),
+V('了','le','5','(completed-action particle)','greetings','我吃了。','I have eaten.'),
+V('呢','ne','5','(and you? particle)','greetings','我很好，你呢？','I\'m fine — and you?'),
+/* --- Numbers & Money (27) --- */
+V('一','yī','1','one','numbers','我有一个问题。','I have one question.'),
+V('二','èr','4','two','numbers','二加二是四。','Two plus two is four.'),
+V('三','sān','1','three','numbers','我们有三个孩子。','We have three children.'),
+V('四','sì','4','four','numbers','现在四点。','It is four o\'clock now.'),
+V('五','wǔ','3','five','numbers','我家有五口人。','There are five people in my family.'),
+V('六','liù','4','six','numbers','今天六月六号。','Today is June 6th.'),
+V('七','qī','1','seven','numbers','一个星期有七天。','A week has seven days.'),
+V('八','bā','1','eight','numbers','中国人喜欢八。','Chinese people like eight.'),
+V('九','jiǔ','3','nine','numbers','现在九点钟。','It is nine o\'clock.'),
+V('十','shí','2','ten','numbers','我有十块钱。','I have ten yuan.'),
+V('零','líng','2','zero','numbers','我的房间是三零五。','My room is 305.'),
+V('百','bǎi','3','hundred','numbers','这件衣服一百块。','This piece of clothing is 100 yuan.'),
+V('千','qiān','1','thousand','numbers','这个手机三千块。','This phone is 3,000 yuan.'),
+V('万','wàn','4','ten thousand','numbers','这个房子一百万。','This house is one million.'),
+V('两','liǎng','3','two (of something)','numbers','我要两杯咖啡。','I want two cups of coffee.'),
+V('半','bàn','4','half','numbers','现在三点半。','It is half past three.'),
+V('块','kuài','4','yuan (money)','numbers','这个十块钱。','This one is ten yuan.'),
+V('钱','qián','2','money','numbers','这个多少钱？','How much is this?'),
+V('个','gè','4','(general measure word)','numbers','我买三个苹果。','I buy three apples.'),
+V('些','xiē','1','some, a few','numbers','我想买一些水果。','I want to buy some fruit.'),
+V('岁','suì','4','years old','numbers','我三十岁。','I am thirty years old.'),
+V('号','hào','4','number; date','numbers','今天几号？','What\'s the date today?'),
+V('第一','dì yī','4-1','first','numbers','这是我第一次来中国。','This is my first time in China.'),
+V('多少','duō shao','1-5','how much, how many','numbers','你的电话是多少？','What is your phone number?'),
+V('几','jǐ','3','how many (small)','numbers','现在几点？','What time is it now?'),
+V('次','cì','4','time, occasion','numbers','我去过两次北京。','I have been to Beijing twice.'),
+V('一起','yī qǐ','1-3','together','numbers','我们一起吃饭吧。','Let\'s eat together.'),
+/* --- Colors (12) --- */
+V('颜色','yán sè','2-4','color','colors','你喜欢什么颜色？','What color do you like?'),
+V('红色','hóng sè','2-4','red','colors','我喜欢红色的花。','I like red flowers.'),
+V('蓝色','lán sè','2-4','blue','colors','天空是蓝色的。','The sky is blue.'),
+V('绿色','lǜ sè','4-4','green','colors','春天的树是绿色的。','Trees in spring are green.'),
+V('黄色','huáng sè','2-4','yellow','colors','香蕉是黄色的。','Bananas are yellow.'),
+V('黑色','hēi sè','1-4','black','colors','他有黑色的头发。','He has black hair.'),
+V('白色','bái sè','2-4','white','colors','雪是白色的。','Snow is white.'),
+V('灰色','huī sè','1-4','gray','colors','今天的天是灰色的。','The sky today is gray.'),
+V('粉色','fěn sè','3-4','pink','colors','她喜欢粉色的衣服。','She likes pink clothes.'),
+V('紫色','zǐ sè','3-4','purple','colors','这些花是紫色的。','These flowers are purple.'),
+V('橙色','chéng sè','2-4','orange (color)','colors','橙子是橙色的。','Oranges are orange.'),
+V('咖啡色','kā fēi sè','1-1-4','brown, coffee-colored','colors','我的鞋是咖啡色的。','My shoes are brown.'),
+/* --- Food & Drink (30) --- */
+V('米饭','mǐ fàn','3-4','rice (cooked)','food','我要一碗米饭。','I want a bowl of rice.'),
+V('面条','miàn tiáo','4-2','noodles','food','这家的面条很好吃。','The noodles here are delicious.'),
+V('饺子','jiǎo zi','3-5','dumplings','food','我们晚上吃饺子。','We are having dumplings tonight.'),
+V('包子','bāo zi','1-5','steamed bun','food','我早上买了两个包子。','I bought two steamed buns this morning.'),
+V('汤','tāng','1','soup','food','这个汤很热。','This soup is very hot.'),
+V('菜','cài','4','dish; vegetable','food','妈妈做的菜很好吃。','Mom\'s cooking is delicious.'),
+V('肉','ròu','4','meat','food','我不吃肉。','I don\'t eat meat.'),
+V('牛肉','niú ròu','2-4','beef','food','牛肉面多少钱？','How much are the beef noodles?'),
+V('鸡肉','jī ròu','1-4','chicken (meat)','food','我喜欢吃鸡肉。','I like eating chicken.'),
+V('鱼','yú','2','fish','food','爸爸买了一条鱼。','Dad bought a fish.'),
+V('鸡蛋','jī dàn','1-4','egg','food','我早饭吃两个鸡蛋。','I eat two eggs for breakfast.'),
+V('水果','shuǐ guǒ','3-3','fruit','food','多吃水果对身体好。','Eating more fruit is good for your body.'),
+V('苹果','píng guǒ','2-3','apple','food','我每天吃一个苹果。','I eat an apple every day.'),
+V('香蕉','xiāng jiāo','1-1','banana','food','香蕉很好吃。','Bananas are delicious.'),
+V('西瓜','xī guā','1-1','watermelon','food','夏天我爱吃西瓜。','In summer I love eating watermelon.'),
+V('蔬菜','shū cài','1-4','vegetables','food','孩子要多吃蔬菜。','Children should eat more vegetables.'),
+V('水','shuǐ','3','water','food','请给我一杯水。','Please give me a glass of water.'),
+V('茶','chá','2','tea','food','中国人爱喝茶。','Chinese people love drinking tea.'),
+V('咖啡','kā fēi','1-1','coffee','food','我早上喝咖啡。','I drink coffee in the morning.'),
+V('牛奶','niú nǎi','2-3','milk','food','我每天喝牛奶。','I drink milk every day.'),
+V('啤酒','pí jiǔ','2-3','beer','food','他喜欢喝啤酒。','He likes drinking beer.'),
+V('果汁','guǒ zhī','3-1','juice','food','孩子想喝果汁。','The child wants to drink juice.'),
+V('糖','táng','2','sugar; candy','food','我的咖啡不要糖。','No sugar in my coffee.'),
+V('盐','yán','2','salt','food','这个汤盐太多了。','This soup has too much salt.'),
+V('面包','miàn bāo','4-1','bread','food','我买了新的面包。','I bought fresh bread.'),
+V('早饭','zǎo fàn','3-4','breakfast','food','你吃早饭了吗？','Have you had breakfast?'),
+V('午饭','wǔ fàn','3-4','lunch','food','我们一起吃午饭吧。','Let\'s have lunch together.'),
+V('晚饭','wǎn fàn','3-4','dinner','food','晚饭想吃什么？','What do you want for dinner?'),
+V('好吃','hǎo chī','3-1','delicious','food','这个饺子真好吃！','These dumplings are really delicious!'),
+V('菜单','cài dān','4-1','menu','food','请给我看看菜单。','Please let me see the menu.'),
+/* --- Family & People (25) --- */
+V('家','jiā','1','home; family','family','我想回家。','I want to go home.'),
+V('家人','jiā rén','1-2','family members','family','我爱我的家人。','I love my family.'),
+V('爸爸','bà ba','4-5','dad','family','我爸爸是医生。','My dad is a doctor.'),
+V('妈妈','mā ma','1-5','mom','family','妈妈在做饭。','Mom is cooking.'),
+V('哥哥','gē ge','1-5','older brother','family','我有一个哥哥。','I have an older brother.'),
+V('弟弟','dì di','4-5','younger brother','family','弟弟在睡觉。','Little brother is sleeping.'),
+V('姐姐','jiě jie','3-5','older sister','family','姐姐在北京工作。','Older sister works in Beijing.'),
+V('妹妹','mèi mei','4-5','younger sister','family','妹妹今年十岁。','Little sister is ten this year.'),
+V('爷爷','yé ye','2-5','grandpa','family','爷爷喜欢喝茶。','Grandpa likes drinking tea.'),
+V('奶奶','nǎi nai','3-5','grandma','family','奶奶做的饭最好吃。','Grandma\'s cooking is the best.'),
+V('孩子','hái zi','2-5','child','family','孩子们在公园玩。','The children are playing in the park.'),
+V('儿子','ér zi','2-5','son','family','他儿子是学生。','His son is a student.'),
+V('女儿','nǚ ér','3-2','daughter','family','我女儿会说中文。','My daughter can speak Chinese.'),
+V('朋友','péng you','2-5','friend','family','他是我最好的朋友。','He is my best friend.'),
+V('老师','lǎo shī','3-1','teacher','family','王老师教中文。','Teacher Wang teaches Chinese.'),
+V('学生','xué sheng','2-5','student','family','我是中文学生。','I am a Chinese-language student.'),
+V('医生','yī shēng','1-1','doctor','family','我想看医生。','I want to see a doctor.'),
+V('男人','nán rén','2-2','man','family','那个男人是谁？','Who is that man?'),
+V('女人','nǚ rén','3-2','woman','family','这个女人很高。','This woman is very tall.'),
+V('先生','xiān sheng','1-5','Mr.; sir','family','李先生，您好！','Hello, Mr. Li!'),
+V('小姐','xiǎo jiě','3-3','Miss','family','王小姐在公司。','Miss Wang is at the company.'),
+V('丈夫','zhàng fu','4-5','husband','family','她丈夫是老师。','Her husband is a teacher.'),
+V('妻子','qī zi','1-5','wife','family','我妻子喜欢看书。','My wife likes reading.'),
+V('同事','tóng shì','2-4','colleague','family','我和同事一起吃午饭。','I have lunch with my colleagues.'),
+V('邻居','lín jū','2-1','neighbor','family','我们的邻居很好。','Our neighbors are very nice.'),
+/* --- Travel & Places (30) --- */
+V('飞机','fēi jī','1-1','airplane','travel','我坐飞机去北京。','I go to Beijing by plane.'),
+V('火车','huǒ chē','3-1','train','travel','我们明天坐火车。','We take the train tomorrow.'),
+V('出租车','chū zū chē','1-1-1','taxi','travel','出租车来了！','The taxi is here!'),
+V('地铁','dì tiě','4-3','metro, subway','travel','坐地铁很快。','Taking the metro is fast.'),
+V('公共汽车','gōng gòng qì chē','1-4-4-1','bus','travel','我每天坐公共汽车上班。','I take the bus to work every day.'),
+V('自行车','zì xíng chē','4-2-1','bicycle','travel','他骑自行车去学校。','He rides a bicycle to school.'),
+V('机场','jī chǎng','1-3','airport','travel','机场很大。','The airport is very big.'),
+V('火车站','huǒ chē zhàn','3-1-4','train station','travel','火车站在哪里？','Where is the train station?'),
+V('酒店','jiǔ diàn','3-4','hotel','travel','我住在这个酒店。','I am staying at this hotel.'),
+V('饭店','fàn diàn','4-4','restaurant','travel','我们去饭店吃饭。','We go to a restaurant to eat.'),
+V('商店','shāng diàn','1-4','shop, store','travel','商店九点开门。','The shop opens at nine.'),
+V('超市','chāo shì','1-4','supermarket','travel','我去超市买水果。','I go to the supermarket to buy fruit.'),
+V('银行','yín háng','2-2','bank','travel','银行几点开门？','What time does the bank open?'),
+V('医院','yī yuàn','1-4','hospital','travel','医院在学校附近。','The hospital is near the school.'),
+V('学校','xué xiào','2-4','school','travel','我们学校很漂亮。','Our school is very pretty.'),
+V('公司','gōng sī','1-1','company','travel','他在大公司工作。','He works at a big company.'),
+V('公园','gōng yuán','1-2','park','travel','周末我们去公园。','On weekends we go to the park.'),
+V('中国','Zhōng guó','1-2','China','travel','中国菜很好吃。','Chinese food is delicious.'),
+V('北京','Běi jīng','3-1','Beijing','travel','我朋友住在北京。','My friend lives in Beijing.'),
+V('左边','zuǒ bian','3-5','left side','travel','银行在左边。','The bank is on the left.'),
+V('右边','yòu bian','4-5','right side','travel','超市在右边。','The supermarket is on the right.'),
+V('前面','qián miàn','2-4','front, ahead','travel','学校就在前面。','The school is just ahead.'),
+V('后面','hòu miàn','4-4','back, behind','travel','公园在房子后面。','The park is behind the house.'),
+V('旁边','páng biān','2-1','beside, next to','travel','他坐在我旁边。','He sits beside me.'),
+V('附近','fù jìn','4-4','nearby','travel','附近有地铁站吗？','Is there a metro station nearby?'),
+V('地图','dì tú','4-2','map','travel','手机上有地图。','There is a map on the phone.'),
+V('票','piào','4','ticket','travel','我买了两张票。','I bought two tickets.'),
+V('护照','hù zhào','4-4','passport','travel','请给我看您的护照。','Please show me your passport.'),
+V('路','lù','4','road, way','travel','这条路很长。','This road is very long.'),
+V('城市','chéng shì','2-4','city','travel','北京是一个大城市。','Beijing is a big city.'),
+/* --- Weather & Nature (20) --- */
+V('天气','tiān qì','1-4','weather','weather','今天天气很好。','The weather is very good today.'),
+V('下雨','xià yǔ','4-3','to rain','weather','外面在下雨。','It is raining outside.'),
+V('下雪','xià xuě','4-3','to snow','weather','北京冬天下雪。','It snows in Beijing in winter.'),
+V('刮风','guā fēng','1-1','to be windy','weather','今天刮风，很冷。','It\'s windy today — very cold.'),
+V('太阳','tài yáng','4-2','sun','weather','太阳出来了。','The sun has come out.'),
+V('月亮','yuè liang','4-5','moon','weather','今晚的月亮很亮。','The moon is bright tonight.'),
+V('热','rè','4','hot','weather','夏天很热。','Summer is very hot.'),
+V('冷','lěng','3','cold','weather','今天很冷，多穿衣服。','It\'s cold today — wear more clothes.'),
+V('春天','chūn tiān','1-1','spring','weather','春天花开了。','Flowers bloom in spring.'),
+V('夏天','xià tiān','4-1','summer','weather','夏天我喜欢吃西瓜。','In summer I like eating watermelon.'),
+V('秋天','qiū tiān','1-1','autumn','weather','秋天不冷不热。','Autumn is neither cold nor hot.'),
+V('冬天','dōng tiān','1-1','winter','weather','冬天我想喝热茶。','In winter I want hot tea.'),
+V('天空','tiān kōng','1-1','sky','weather','天空是蓝色的。','The sky is blue.'),
+V('山','shān','1','mountain','weather','山上有很多树。','There are many trees on the mountain.'),
+V('河','hé','2','river','weather','我家附近有一条河。','There is a river near my home.'),
+V('花','huā','1','flower','weather','这些花真漂亮。','These flowers are really pretty.'),
+V('树','shù','4','tree','weather','公园里有很多树。','There are many trees in the park.'),
+V('云','yún','2','cloud','weather','天上有白云。','There are white clouds in the sky.'),
+V('雨','yǔ','3','rain (noun)','weather','昨天的雨很大。','Yesterday\'s rain was heavy.'),
+V('雪','xuě','3','snow (noun)','weather','雪是白色的。','Snow is white.'),
+/* --- Body & Health (20) --- */
+V('身体','shēn tǐ','1-3','body; health','body','爷爷的身体很好。','Grandpa\'s health is very good.'),
+V('头','tóu','2','head','body','我头疼，想休息。','My head hurts — I want to rest.'),
+V('头发','tóu fa','2-5','hair','body','她的头发很长。','Her hair is very long.'),
+V('眼睛','yǎn jing','3-5','eye','body','孩子的眼睛很大。','The child\'s eyes are big.'),
+V('耳朵','ěr duo','3-5','ear','body','我的耳朵很冷。','My ears are cold.'),
+V('鼻子','bí zi','2-5','nose','body','他的鼻子很高。','He has a tall nose.'),
+V('嘴','zuǐ','3','mouth','body','她的嘴很小。','Her mouth is small.'),
+V('手','shǒu','3','hand','body','吃饭前要洗手。','Wash your hands before eating.'),
+V('脚','jiǎo','3','foot','body','我的脚很疼。','My foot hurts.'),
+V('腿','tuǐ','3','leg','body','他的腿很长。','His legs are long.'),
+V('牙','yá','2','tooth','body','我牙疼，要看医生。','I have a toothache — I need to see a doctor.'),
+V('脸','liǎn','3','face','body','她的脸红了。','Her face turned red.'),
+V('心','xīn','1','heart','body','他的心很好。','He has a kind heart.'),
+V('病','bìng','4','illness; to be sick','body','我病了，不能上班。','I am sick and can\'t go to work.'),
+V('疼','téng','2','to hurt, to ache','body','我的头很疼。','My head really hurts.'),
+V('累','lèi','4','tired','body','工作一天，我很累。','After working all day, I\'m tired.'),
+V('饿','è','4','hungry','body','我饿了，吃饭吧。','I\'m hungry — let\'s eat.'),
+V('渴','kě','3','thirsty','body','我渴了，想喝水。','I\'m thirsty — I want some water.'),
+V('药','yào','4','medicine','body','一天吃三次药。','Take the medicine three times a day.'),
+V('休息','xiū xi','1-5','to rest','body','累了就休息一下。','Rest a bit when you\'re tired.'),
+/* --- Daily Objects (30) --- */
+V('东西','dōng xi','1-5','thing, stuff','objects','我去超市买东西。','I go to the supermarket to buy things.'),
+V('书','shū','1','book','objects','这本书很有意思。','This book is very interesting.'),
+V('笔','bǐ','3','pen','objects','请给我一支笔。','Please give me a pen.'),
+V('纸','zhǐ','3','paper','objects','我需要一张纸。','I need a piece of paper.'),
+V('桌子','zhuō zi','1-5','table, desk','objects','书在桌子上。','The book is on the table.'),
+V('椅子','yǐ zi','3-5','chair','objects','这把椅子很舒服。','This chair is comfortable.'),
+V('床','chuáng','2','bed','objects','我的床很大。','My bed is big.'),
+V('门','mén','2','door','objects','请开门。','Please open the door.'),
+V('窗户','chuāng hu','1-5','window','objects','请打开窗户。','Please open the window.'),
+V('手机','shǒu jī','3-1','mobile phone','objects','我的手机没电了。','My phone is out of battery.'),
+V('电脑','diàn nǎo','4-3','computer','objects','他用电脑工作。','He works with a computer.'),
+V('电视','diàn shì','4-4','television','objects','晚上我们看电视。','We watch TV in the evening.'),
+V('杯子','bēi zi','1-5','cup, glass','objects','杯子里有茶。','There is tea in the cup.'),
+V('碗','wǎn','3','bowl','objects','我要一碗面条。','I want a bowl of noodles.'),
+V('钱包','qián bāo','2-1','wallet','objects','我的钱包丢了！','My wallet is lost!'),
+V('钥匙','yào shi','4-5','key','objects','钥匙在包里。','The keys are in the bag.'),
+V('衣服','yī fu','1-5','clothes','objects','我想买新衣服。','I want to buy new clothes.'),
+V('鞋','xié','2','shoes','objects','这双鞋很贵。','This pair of shoes is expensive.'),
+V('帽子','mào zi','4-5','hat','objects','我的帽子是蓝色的。','My hat is blue.'),
+V('包','bāo','1','bag','objects','她的包很漂亮。','Her bag is very pretty.'),
+V('伞','sǎn','3','umbrella','objects','下雨了，带伞吧。','It\'s raining — take an umbrella.'),
+V('灯','dēng','1','lamp, light','objects','请开灯。','Please turn on the light.'),
+V('房间','fáng jiān','2-1','room','objects','我的房间很小。','My room is small.'),
+V('房子','fáng zi','2-5','house','objects','这个房子很贵。','This house is expensive.'),
+V('车','chē','1','car, vehicle','objects','他买了一辆新车。','He bought a new car.'),
+V('电话','diàn huà','4-4','telephone; phone call','objects','请给我打电话。','Please call me.'),
+V('照片','zhào piàn','4-4','photo','objects','这是我家人的照片。','This is a photo of my family.'),
+V('礼物','lǐ wù','3-4','gift','objects','这是给你的礼物。','This is a gift for you.'),
+V('镜子','jìng zi','4-5','mirror','objects','她在看镜子。','She is looking in the mirror.'),
+V('词典','cí diǎn','2-3','dictionary','objects','我用词典学中文。','I use a dictionary to learn Chinese.'),
+/* --- Emotions & Qualities (25) --- */
+V('高兴','gāo xìng','1-4','happy, glad','emotions','见到你很高兴。','Very glad to meet you.'),
+V('开心','kāi xīn','1-1','happy, joyful','emotions','今天我很开心。','I am very happy today.'),
+V('难过','nán guò','2-4','sad','emotions','听到这个我很难过。','I\'m sad to hear this.'),
+V('生气','shēng qì','1-4','angry','emotions','妈妈生气了。','Mom got angry.'),
+V('害怕','hài pà','4-4','afraid, scared','emotions','孩子害怕黑。','The child is afraid of the dark.'),
+V('爱','ài','4','to love','emotions','我爱我的家。','I love my family.'),
+V('喜欢','xǐ huan','3-5','to like','emotions','我喜欢学中文。','I like learning Chinese.'),
+V('好','hǎo','3','good','emotions','今天天气很好。','The weather is good today.'),
+V('大','dà','4','big','emotions','这个房间很大。','This room is big.'),
+V('小','xiǎo','3','small','emotions','这个杯子太小了。','This cup is too small.'),
+V('多','duō','1','many, much','emotions','公园里人很多。','There are many people in the park.'),
+V('少','shǎo','3','few, little','emotions','这里的车很少。','There are few cars here.'),
+V('快','kuài','4','fast','emotions','地铁很快。','The metro is fast.'),
+V('慢','màn','4','slow','emotions','请说慢一点。','Please speak a bit slower.'),
+V('新','xīn','1','new','emotions','这是我的新手机。','This is my new phone.'),
+V('旧','jiù','4','old (things)','emotions','这双鞋太旧了。','These shoes are too old.'),
+V('高','gāo','1','tall, high','emotions','他很高。','He is tall.'),
+V('长','cháng','2','long','emotions','这条路很长。','This road is long.'),
+V('漂亮','piào liang','4-5','pretty, beautiful','emotions','这个城市很漂亮。','This city is beautiful.'),
+V('忙','máng','2','busy','emotions','我今天很忙。','I am very busy today.'),
+V('聪明','cōng ming','1-5','smart, clever','emotions','这个孩子很聪明。','This child is smart.'),
+V('贵','guì','4','expensive','emotions','这个太贵了！','This is too expensive!'),
+V('便宜','pián yi','2-5','cheap','emotions','有便宜一点的吗？','Is there a cheaper one?'),
+V('舒服','shū fu','1-5','comfortable','emotions','这张床很舒服。','This bed is comfortable.'),
+V('有意思','yǒu yì si','3-4-5','interesting','emotions','这本书很有意思。','This book is interesting.'),
+/* --- Time (30) --- */
+V('时间','shí jiān','2-1','time','time','我没有时间。','I don\'t have time.'),
+V('今天','jīn tiān','1-1','today','time','今天是星期一。','Today is Monday.'),
+V('明天','míng tiān','2-1','tomorrow','time','明天见！','See you tomorrow!'),
+V('昨天','zuó tiān','2-1','yesterday','time','昨天下雨了。','It rained yesterday.'),
+V('现在','xiàn zài','4-4','now','time','现在几点？','What time is it now?'),
+V('早上','zǎo shang','3-5','morning','time','我早上七点起床。','I get up at seven in the morning.'),
+V('上午','shàng wǔ','4-3','morning (a.m.)','time','上午我有中文课。','I have Chinese class in the morning.'),
+V('中午','zhōng wǔ','1-3','noon','time','中午我们吃面条。','At noon we eat noodles.'),
+V('下午','xià wǔ','4-3','afternoon','time','下午三点见。','See you at 3 p.m.'),
+V('晚上','wǎn shang','3-5','evening, night','time','晚上我看电视。','In the evening I watch TV.'),
+V('年','nián','2','year','time','一年有十二个月。','A year has twelve months.'),
+V('月','yuè','4','month','time','我下个月去中国。','I go to China next month.'),
+V('日','rì','4','day (date)','time','今天是六月九日。','Today is June 9th.'),
+V('天','tiān','1','day','time','我学了三天了。','I have been studying for three days.'),
+V('星期','xīng qī','1-1','week','time','一个星期有七天。','A week has seven days.'),
+V('星期一','xīng qī yī','1-1-1','Monday','time','星期一我要上班。','I work on Monday.'),
+V('星期天','xīng qī tiān','1-1-1','Sunday','time','星期天我们休息。','We rest on Sunday.'),
+V('点','diǎn','3','o\'clock','time','现在八点。','It is eight o\'clock.'),
+V('分钟','fēn zhōng','1-1','minute','time','请等五分钟。','Please wait five minutes.'),
+V('小时','xiǎo shí','3-2','hour','time','我学了两个小时。','I studied for two hours.'),
+V('时候','shí hou','2-5','time, moment','time','你什么时候来？','When are you coming?'),
+V('以前','yǐ qián','3-2','before, in the past','time','以前我住在北京。','Before, I lived in Beijing.'),
+V('以后','yǐ hòu','3-4','after, later','time','以后我想去中国。','In the future I want to go to China.'),
+V('常常','cháng cháng','2-2','often','time','我常常去公园。','I often go to the park.'),
+V('有时候','yǒu shí hou','3-2-5','sometimes','time','有时候我喝咖啡。','Sometimes I drink coffee.'),
+V('每天','měi tiān','3-1','every day','time','我每天学中文。','I study Chinese every day.'),
+V('周末','zhōu mò','1-4','weekend','time','周末你做什么？','What do you do on weekends?'),
+V('去年','qù nián','4-2','last year','time','去年我去了中国。','Last year I went to China.'),
+V('明年','míng nián','2-2','next year','time','明年我想学汉字。','Next year I want to learn characters.'),
+V('生日','shēng rì','1-4','birthday','time','生日快乐！','Happy birthday!'),
+/* --- Action Verbs (40) --- */
+V('吃','chī','1','to eat','verbs','我想吃饺子。','I want to eat dumplings.'),
+V('喝','hē','1','to drink','verbs','你想喝什么？','What do you want to drink?'),
+V('去','qù','4','to go','verbs','我们去公园吧。','Let\'s go to the park.'),
+V('来','lái','2','to come','verbs','请来我家吃饭。','Please come to my home for dinner.'),
+V('看','kàn','4','to look, watch, read','verbs','我喜欢看书。','I like reading books.'),
+V('听','tīng','1','to listen','verbs','我每天听中文。','I listen to Chinese every day.'),
+V('说','shuō','1','to speak, say','verbs','请再说一次。','Please say it again.'),
+V('读','dú','2','to read (aloud)','verbs','他在读一本新书。','He is reading a new book.'),
+V('写','xiě','3','to write','verbs','我会写一百个汉字。','I can write 100 Chinese characters.'),
+V('学习','xué xí','2-2','to study','verbs','我在学习中文。','I am studying Chinese.'),
+V('工作','gōng zuò','1-4','to work; job','verbs','我爸爸在银行工作。','My dad works at a bank.'),
+V('睡觉','shuì jiào','4-4','to sleep','verbs','我十一点睡觉。','I go to sleep at eleven.'),
+V('起床','qǐ chuáng','3-2','to get up','verbs','我每天七点起床。','I get up at seven every day.'),
+V('走','zǒu','3','to walk; to leave','verbs','我们走路去吧。','Let\'s go on foot.'),
+V('跑','pǎo','3','to run','verbs','他每天早上跑步。','He runs every morning.'),
+V('坐','zuò','4','to sit; to take (transport)','verbs','请坐！','Please sit!'),
+V('站','zhàn','4','to stand','verbs','他站在门前。','He stands in front of the door.'),
+V('买','mǎi','3','to buy','verbs','我想买这个。','I want to buy this.'),
+V('卖','mài','4','to sell','verbs','这里卖水果。','Fruit is sold here.'),
+V('开','kāi','1','to open; to drive','verbs','请开门。','Please open the door.'),
+V('关','guān','1','to close','verbs','请关窗户。','Please close the window.'),
+V('给','gěi','3','to give','verbs','请给我菜单。','Please give me the menu.'),
+V('找','zhǎo','3','to look for','verbs','我在找我的钥匙。','I am looking for my keys.'),
+V('帮助','bāng zhù','1-4','to help','verbs','谢谢你的帮助。','Thank you for your help.'),
+V('打电话','dǎ diàn huà','3-4-4','to make a phone call','verbs','我给妈妈打电话。','I call my mom.'),
+V('玩','wán','2','to play','verbs','孩子们在外面玩。','The kids are playing outside.'),
+V('用','yòng','4','to use','verbs','我用手机学中文。','I use my phone to learn Chinese.'),
+V('住','zhù','4','to live (reside)','verbs','你住在哪里？','Where do you live?'),
+V('想','xiǎng','3','to want; to think','verbs','我想回家。','I want to go home.'),
+V('要','yào','4','to want; to need','verbs','我要一杯茶。','I want a cup of tea.'),
+V('会','huì','4','can (learned skill)','verbs','我会说一点中文。','I can speak a little Chinese.'),
+V('能','néng','2','can (be able to)','verbs','你能帮助我吗？','Can you help me?'),
+V('做','zuò','4','to do, to make','verbs','妈妈在做饭。','Mom is cooking.'),
+V('知道','zhī dào','1-4','to know (a fact)','verbs','我不知道他的名字。','I don\'t know his name.'),
+V('认识','rèn shi','4-5','to know (a person)','verbs','很高兴认识你。','Nice to meet you.'),
+V('等','děng','3','to wait','verbs','请等一下。','Please wait a moment.'),
+V('问','wèn','4','to ask','verbs','我想问一个问题。','I want to ask a question.'),
+V('回家','huí jiā','2-1','to go home','verbs','我六点回家。','I go home at six.'),
+V('上班','shàng bān','4-1','to go to work','verbs','我九点上班。','I start work at nine.'),
+V('洗','xǐ','3','to wash','verbs','我去洗手。','I\'m going to wash my hands.')
+];
+
+/* ============================================================
+   CHARACTERS — 150 essential characters
+   (top spoken-frequency blended with HSK-1 basics)
+   [char, pinyin, meaning, strokeCount]
+   ============================================================ */
+function C(ch, py, en, st){ return { ch: ch, py: py, en: en, st: st }; }
+var CHARS = [
+C('一','yī','one',1), C('二','èr','two',2), C('三','sān','three',3), C('十','shí','ten',2),
+C('七','qī','seven',2), C('八','bā','eight',2), C('九','jiǔ','nine',2), C('人','rén','person',2),
+C('入','rù','to enter',2), C('大','dà','big',3), C('天','tiān','sky; day',4), C('太','tài','too (much)',4),
+C('小','xiǎo','small',3), C('上','shàng','up; above',3), C('下','xià','down; below',3), C('不','bù','not',4),
+C('口','kǒu','mouth',3), C('中','zhōng','middle',4), C('日','rì','sun; day',4), C('月','yuè','moon; month',4),
+C('目','mù','eye',5), C('田','tián','field',5), C('山','shān','mountain',3), C('水','shuǐ','water',4),
+C('火','huǒ','fire',4), C('木','mù','tree; wood',4), C('本','běn','root; book',5), C('土','tǔ','earth',3),
+C('王','wáng','king',4), C('五','wǔ','five',4), C('六','liù','six',4), C('四','sì','four',5),
+C('白','bái','white',5), C('百','bǎi','hundred',6), C('千','qiān','thousand',3), C('个','gè','(measure word)',3),
+C('子','zǐ','child',3), C('女','nǚ','woman',3), C('好','hǎo','good',6), C('门','mén','door',3),
+C('们','men','(plural marker)',5), C('你','nǐ','you',7), C('他','tā','he',5), C('也','yě','also',3),
+C('心','xīn','heart',4), C('了','le','(particle)',2), C('力','lì','strength',2), C('刀','dāo','knife',2),
+C('又','yòu','again',2), C('文','wén','writing',4), C('方','fāng','square; direction',4), C('我','wǒ','I, me',7),
+C('是','shì','to be',9), C('有','yǒu','to have',6), C('在','zài','at, in',6), C('工','gōng','work',3),
+C('干','gàn','to do',3), C('国','guó','country',8), C('学','xué','to study',8), C('生','shēng','to be born',5),
+C('的','de','(particle)',8), C('几','jǐ','how many',2), C('儿','ér','child',2), C('去','qù','to go',5),
+C('这','zhè','this',7), C('那','nà','that',6), C('说','shuō','to speak',9), C('和','hé','and',8),
+C('很','hěn','very',9), C('都','dōu','all',10), C('要','yào','to want',9), C('会','huì','can',6),
+C('能','néng','to be able',10), C('来','lái','to come',7), C('回','huí','to return',6), C('看','kàn','to look',9),
+C('见','jiàn','to see',4), C('听','tīng','to listen',7), C('没','méi','not (have)',7), C('对','duì','correct',5),
+C('多','duō','many',6), C('少','shǎo','few',4), C('长','cháng','long',4), C('高','gāo','tall',10),
+C('还','hái','still',7), C('就','jiù','then; just',12), C('真','zhēn','really',10), C('最','zuì','most',12),
+C('给','gěi','to give',9), C('吃','chī','to eat',6), C('喝','hē','to drink',12), C('买','mǎi','to buy',6),
+C('做','zuò','to do, make',11), C('想','xiǎng','to think; want',13), C('爱','ài','to love',10), C('找','zhǎo','to look for',7),
+C('打','dǎ','to hit; to make',5), C('开','kāi','to open',4), C('关','guān','to close',6), C('坐','zuò','to sit',7),
+C('走','zǒu','to walk',7), C('住','zhù','to live',7), C('用','yòng','to use',5), C('写','xiě','to write',5),
+C('读','dú','to read',10), C('知','zhī','to know',8), C('道','dào','way; path',12), C('认','rèn','to recognize',4),
+C('识','shí','to know',7), C('习','xí','to practice',3), C('新','xīn','new',13), C('老','lǎo','old',6),
+C('快','kuài','fast',7), C('慢','màn','slow',14), C('冷','lěng','cold',7), C('热','rè','hot',10),
+C('红','hóng','red',6), C('色','sè','color',6), C('年','nián','year',6), C('今','jīn','now; today',4),
+C('明','míng','bright; tomorrow',8), C('时','shí','time',7), C('候','hòu','moment',10), C('点','diǎn','o\'clock; dot',9),
+C('分','fēn','minute; to divide',4), C('早','zǎo','early; morning',6), C('晚','wǎn','late; evening',11), C('午','wǔ','noon',4),
+C('星','xīng','star',9), C('期','qī','period',12), C('家','jiā','home; family',10), C('爸','bà','dad',8),
+C('妈','mā','mom',6), C('朋','péng','friend',8), C('友','yǒu','friend',4), C('师','shī','teacher',6),
+C('医','yī','doctor; medicine',7), C('车','chē','vehicle',4), C('电','diàn','electricity',5), C('手','shǒu','hand',4),
+C('头','tóu','head',5), C('饭','fàn','meal; rice',7), C('茶','chá','tea',9), C('钱','qián','money',10),
+C('名','míng','name',6), C('字','zì','character',6), C('语','yǔ','language',9), C('谁','shéi','who',10),
+C('什','shén','what',4), C('么','me','(particle)',3)
+];
+
+/* ============================================================
+   GUIDED STROKE DATA — 64 characters, hand-authored polylines
+   on a 0–100 grid. Each stroke is an ordered list of [x,y].
+   ============================================================ */
+var STROKES = {
+'一':[[[10,52],[90,52]]],
+'二':[[[16,34],[84,34]],[[10,68],[90,68]]],
+'三':[[[16,28],[84,28]],[[20,50],[80,50]],[[10,74],[90,74]]],
+'十':[[[10,48],[90,48]],[[50,12],[50,90]]],
+'七':[[[12,42],[88,34]],[[50,10],[50,62],[54,74],[66,79],[82,76],[86,68]]],
+'八':[[[44,18],[36,40],[24,62],[12,80]],[[56,18],[64,42],[76,62],[88,80]]],
+'九':[[[38,12],[34,34],[26,58],[14,82]],[[28,28],[60,28],[60,55],[62,70],[72,79],[84,77],[87,68]]],
+'人':[[[50,12],[44,36],[32,62],[16,86]],[[50,36],[60,56],[72,72],[86,86]]],
+'入':[[[54,14],[44,40],[30,64],[16,84]],[[46,22],[58,44],[72,66],[88,86]]],
+'大':[[[14,44],[86,44]],[[50,14],[46,44],[34,66],[16,88]],[[52,46],[64,64],[76,76],[88,88]]],
+'天':[[[18,26],[82,26]],[[12,48],[88,48]],[[50,26],[46,50],[32,70],[16,90]],[[52,50],[66,68],[78,79],[90,90]]],
+'太':[[[14,42],[86,42]],[[50,12],[46,42],[34,66],[16,88]],[[52,44],[64,62],[78,76],[90,88]],[[50,66],[58,80]]],
+'小':[[[50,12],[50,74],[46,82],[38,79]],[[28,42],[18,64]],[[72,42],[82,62]]],
+'上':[[[50,14],[50,72]],[[52,40],[80,40]],[[10,74],[90,74]]],
+'下':[[[10,26],[90,26]],[[50,28],[50,86]],[[54,46],[66,58]]],
+'不':[[[10,24],[90,24]],[[48,26],[38,46],[22,64]],[[50,26],[50,88]],[[54,48],[68,62]]],
+'口':[[[26,28],[26,76]],[[26,28],[74,28],[74,76]],[[26,76],[74,76]]],
+'中':[[[28,26],[28,62]],[[28,26],[72,26],[72,62]],[[28,62],[72,62]],[[50,10],[50,90]]],
+'日':[[[30,16],[30,84]],[[30,16],[70,16],[70,84]],[[30,50],[70,50]],[[30,84],[70,84]]],
+'月':[[[34,14],[32,46],[26,68],[18,84]],[[34,14],[70,14],[70,78],[66,86],[58,83]],[[36,36],[68,36]],[[34,58],[68,58]]],
+'目':[[[30,12],[30,88]],[[30,12],[70,12],[70,88]],[[30,38],[70,38]],[[30,62],[70,62]],[[30,88],[70,88]]],
+'田':[[[24,18],[24,82]],[[24,18],[76,18],[76,82]],[[24,50],[76,50]],[[50,18],[50,82]],[[24,82],[76,82]]],
+'山':[[[50,14],[50,78]],[[18,38],[18,78],[82,78]],[[82,38],[82,78]]],
+'水':[[[50,10],[50,80],[46,88],[38,84]],[[22,26],[44,26],[34,44],[20,60]],[[64,24],[57,38],[52,48]],[[54,36],[68,56],[82,72],[90,82]]],
+'火':[[[26,30],[33,44]],[[74,26],[66,42]],[[50,12],[46,40],[34,66],[18,88]],[[52,42],[64,62],[78,76],[90,88]]],
+'木':[[[12,40],[88,40]],[[50,12],[50,88]],[[48,44],[36,62],[20,78]],[[52,44],[66,62],[82,78]]],
+'本':[[[12,38],[88,38]],[[50,10],[50,86]],[[48,42],[36,60],[20,76]],[[52,42],[66,60],[82,76]],[[34,72],[66,72]]],
+'土':[[[20,38],[80,38]],[[50,14],[50,80]],[[10,80],[90,80]]],
+'王':[[[16,24],[84,24]],[[20,50],[80,50]],[[50,24],[50,78]],[[10,78],[90,78]]],
+'五':[[[16,22],[84,22]],[[42,24],[34,74]],[[36,46],[64,46],[60,76]],[[12,76],[88,76]]],
+'六':[[[50,10],[56,22]],[[12,34],[88,34]],[[34,46],[22,70]],[[64,46],[78,68]]],
+'四':[[[22,22],[22,78]],[[22,22],[78,22],[78,78]],[[42,24],[38,48],[32,58]],[[58,24],[58,52],[63,58],[72,58]],[[22,78],[78,78]]],
+'白':[[[50,8],[42,20]],[[30,22],[30,86]],[[30,22],[70,22],[70,86]],[[30,52],[70,52]],[[30,86],[70,86]]],
+'百':[[[10,18],[90,18]],[[44,20],[36,32]],[[30,34],[30,88]],[[30,34],[70,34],[70,88]],[[30,60],[70,60]],[[30,88],[70,88]]],
+'千':[[[62,14],[46,20],[34,24]],[[12,44],[88,44]],[[50,22],[50,88]]],
+'个':[[[50,12],[36,38],[16,62]],[[50,12],[64,38],[84,62]],[[50,36],[50,90]]],
+'子':[[[26,18],[68,18],[52,34],[40,44]],[[48,38],[52,56],[50,74],[46,84],[38,80]],[[12,54],[88,54]]],
+'女':[[[42,14],[30,44],[20,66],[38,76],[56,84]],[[64,14],[52,44],[34,70],[20,84]],[[14,52],[86,48]]],
+'好':[[[30,16],[22,42],[14,62],[26,72],[36,78]],[[42,16],[34,44],[22,68],[12,82]],[[10,50],[44,46]],[[52,22],[86,22],[74,36],[64,46]],[[70,40],[74,58],[72,74],[68,84],[60,80]],[[50,58],[92,58]]],
+'门':[[[26,12],[32,22]],[[24,26],[24,88]],[[28,24],[76,24],[76,80],[72,88],[64,84]]],
+'们':[[[30,14],[24,32],[16,48]],[[24,34],[24,88]],[[46,16],[52,26]],[[44,30],[44,86]],[[48,28],[84,28],[84,80],[80,88],[72,84]]],
+'你':[[[28,14],[22,32],[14,48]],[[22,34],[22,88]],[[62,12],[48,24],[38,30]],[[40,32],[80,32],[70,44],[62,50]],[[62,46],[62,82],[58,90],[50,86]],[[48,58],[40,74]],[[76,58],[84,72]]],
+'他':[[[28,14],[22,32],[14,48]],[[22,34],[22,88]],[[44,36],[44,76]],[[40,46],[68,38],[68,72],[68,72]],[[68,38],[68,30]]],
+'也':[[[20,38],[62,30],[62,62]],[[28,22],[28,74],[32,80]],[[74,16],[74,68],[78,78],[88,76],[90,66]]],
+'心':[[[26,46],[20,62]],[[36,28],[40,58],[44,74],[52,80],[62,76],[66,66]],[[58,34],[64,46]],[[78,30],[84,44]]],
+'了':[[[26,16],[70,16],[58,32],[50,42]],[[52,38],[54,58],[52,76],[48,86],[40,82]]],
+'力':[[[24,32],[74,32],[70,54],[62,74],[54,86],[46,82]],[[58,14],[48,42],[34,66],[18,86]]],
+'刀':[[[24,28],[74,28],[70,52],[62,74],[54,86],[46,82]],[[60,30],[48,52],[32,72],[18,86]]],
+'又':[[[20,22],[76,22],[64,46],[46,68],[24,84]],[[36,40],[52,58],[68,72],[84,84]]],
+'文':[[[50,8],[56,20]],[[14,30],[86,30]],[[66,32],[52,54],[34,72],[18,86]],[[36,52],[52,66],[70,78],[86,86]]],
+'方':[[[50,8],[57,19]],[[12,30],[88,30]],[[52,32],[46,56],[36,74],[24,86],[16,80]],[[50,52],[76,52],[72,70],[66,82],[58,78]]],
+'我':[[[34,12],[22,24],[14,30]],[[10,38],[54,34]],[[32,18],[32,66],[28,80],[18,74]],[[14,58],[34,52]],[[44,24],[58,22],[58,52],[64,72],[74,82],[86,80]],[[52,40],[68,58],[80,68]],[[74,16],[82,28]]],
+'是':[[[34,10],[34,38],[66,38]],[[34,10],[66,10],[66,38]],[[34,24],[66,24]],[[14,48],[86,48]],[[36,58],[64,58]],[[36,58],[36,72]],[[38,70],[60,70]],[[34,58],[28,74],[16,86]],[[38,74],[56,80],[74,84],[90,86]]],
+'有':[[[10,28],[90,28]],[[56,10],[44,30],[28,46],[14,58]],[[36,46],[36,84]],[[36,46],[74,46],[74,78],[70,88],[62,84]],[[38,58],[72,58]],[[38,70],[72,70]]],
+'在':[[[10,26],[90,26]],[[44,10],[34,32],[20,48],[10,58]],[[30,38],[30,86]],[[44,52],[44,84]],[[40,62],[88,62]],[[34,86],[92,86]]],
+'工':[[[18,22],[82,22]],[[50,22],[50,78]],[[10,78],[90,78]]],
+'干':[[[20,24],[80,24]],[[10,50],[90,50]],[[50,24],[50,88]]],
+'国':[[[16,14],[16,86]],[[16,14],[84,14],[84,86]],[[30,32],[70,32]],[[50,32],[50,64]],[[30,48],[70,48]],[[30,64],[70,64]],[[58,54],[66,62]],[[16,86],[84,86]]],
+'学':[[[28,10],[32,20]],[[50,8],[50,18]],[[72,10],[66,20]],[[18,26],[26,34]],[[16,38],[84,38],[80,30]],[[24,50],[76,50],[62,62],[52,68]],[[50,64],[54,76],[50,88],[42,84]],[[14,72],[88,72]]],
+'生':[[[40,10],[28,26],[16,36]],[[20,34],[80,34]],[[26,56],[76,56]],[[50,16],[50,84]],[[12,84],[90,84]]],
+'的':[[[36,10],[28,22]],[[18,26],[18,84]],[[18,26],[48,26],[48,84]],[[18,54],[48,54]],[[18,84],[48,84]],[[72,10],[62,26],[56,34]],[[58,32],[86,32],[84,62],[80,78],[72,84],[64,80]],[[70,46],[76,58]]],
+'几':[[[36,16],[32,46],[24,70],[14,86]],[[38,16],[68,16],[70,50],[74,70],[82,80],[90,76]]],
+'儿':[[[40,14],[36,44],[26,68],[14,86]],[[58,14],[58,60],[62,76],[72,84],[84,80],[88,70]]],
+'去':[[[24,28],[76,28]],[[50,10],[50,52]],[[12,52],[88,52]],[[38,56],[30,70],[40,80],[52,84]],[[52,66],[64,78]]]
+};
+
+/* ============================================================
+   PHRASES & DIALOGUES — 7 real-life contexts
+   Each line = tokens [hanzi, pinyin(spoken tone), english]
+   Punctuation tokens have empty pinyin/english.
+   ============================================================ */
+var PHRASES = [
+{ id:'restaurant', label:'At a Restaurant', mins:4, lines:[
+ { toks:[['服务员','fú wù yuán','waiter'],['，','',''],['请','qǐng','please'],['给','gěi','give'],['我','wǒ','me'],['菜单','cài dān','menu'],['。','','']], en:'Waiter, please give me the menu.' },
+ { toks:[['我','wǒ','I'],['要','yào','want'],['一','yì','one'],['碗','wǎn','bowl of'],['米饭','mǐ fàn','rice'],['。','','']], en:'I would like a bowl of rice.' },
+ { toks:[['这个','zhè ge','this'],['汤','tāng','soup'],['太','tài','too'],['热','rè','hot'],['了','le','(particle)'],['。','','']], en:'This soup is too hot.' },
+ { toks:[['我','wǒ','I'],['不','bù','not'],['吃','chī','eat'],['肉','ròu','meat'],['。','','']], en:'I do not eat meat.' },
+ { toks:[['真','zhēn','really'],['好吃','hǎo chī','delicious'],['！','','']], en:'Really delicious!' },
+ { toks:[['这个','zhè ge','this'],['多少','duō shao','how much'],['钱','qián','money'],['？','','']], en:'How much is this?' },
+ { toks:[['买单','mǎi dān','the bill'],['，','',''],['谢谢','xiè xie','thanks'],['！','','']], en:'The bill, please — thank you!' }
+]},
+{ id:'hotel', label:'At a Hotel', mins:4, lines:[
+ { toks:[['你们','nǐ men','you (pl.)'],['有','yǒu','have'],['房间','fáng jiān','room'],['吗','ma','?'],['？','','']], en:'Do you have a room?' },
+ { toks:[['一','yì','one'],['晚','wǎn','night'],['多少','duō shao','how much'],['钱','qián','money'],['？','','']], en:'How much for one night?' },
+ { toks:[['我','wǒ','I'],['要','yào','will'],['住','zhù','stay'],['三','sān','three'],['天','tiān','days'],['。','','']], en:'I will stay three days.' },
+ { toks:[['几','jǐ','what'],['点','diǎn','time'],['退房','tuì fáng','check out'],['？','','']], en:'What time is check-out?' },
+ { toks:[['房间','fáng jiān','room'],['里','lǐ','inside'],['有','yǒu','have'],['热水','rè shuǐ','hot water'],['吗','ma','?'],['？','','']], en:'Is there hot water in the room?' },
+ { toks:[['请','qǐng','please'],['给','gěi','give'],['我','wǒ','me'],['钥匙','yào shi','key'],['。','','']], en:'Please give me the key.' }
+]},
+{ id:'directions', label:'Asking for Directions', mins:4, lines:[
+ { toks:[['请问','qǐng wèn','excuse me'],['，','',''],['地铁站','dì tiě zhàn','metro station'],['在','zài','is at'],['哪里','nǎ lǐ','where'],['？','','']], en:'Excuse me, where is the metro station?' },
+ { toks:[['一直','yì zhí','straight'],['走','zǒu','walk'],['。','','']], en:'Go straight ahead.' },
+ { toks:[['在','zài','at'],['左边','zuǒ bian','left side'],['还是','hái shì','or'],['右边','yòu bian','right side'],['？','','']], en:'Is it on the left or the right?' },
+ { toks:[['怎么','zěn me','how'],['去','qù','go to'],['机场','jī chǎng','airport'],['？','','']], en:'How do I get to the airport?' },
+ { toks:[['远','yuǎn','far'],['不','bu','not'],['远','yuǎn','far'],['？','','']], en:'Is it far?' },
+ { toks:[['银行','yín háng','bank'],['在','zài','is at'],['超市','chāo shì','supermarket'],['旁边','páng biān','beside'],['。','','']], en:'The bank is beside the supermarket.' }
+]},
+{ id:'shopping', label:'Shopping', mins:4, lines:[
+ { toks:[['我','wǒ','I'],['只是','zhǐ shì','just'],['看看','kàn kan','looking'],['。','','']], en:'I am just looking.' },
+ { toks:[['这个','zhè ge','this'],['可以','kě yǐ','may'],['试试','shì shi','try'],['吗','ma','?'],['？','','']], en:'May I try this one?' },
+ { toks:[['太','tài','too'],['贵','guì','expensive'],['了','le','(particle)'],['！','','']], en:'Too expensive!' },
+ { toks:[['便宜','pián yi','cheap'],['一点','yì diǎn','a bit'],['吧','ba','(suggestion)'],['。','','']], en:'A bit cheaper, please.' },
+ { toks:[['有','yǒu','have'],['别的','bié de','other'],['颜色','yán sè','color'],['吗','ma','?'],['？','','']], en:'Do you have other colors?' },
+ { toks:[['我','wǒ','I'],['买','mǎi','buy'],['这个','zhè ge','this one'],['。','','']], en:'I will buy this one.' }
+]},
+{ id:'intros', label:'Introductions', mins:4, lines:[
+ { toks:[['你','nǐ','you'],['叫','jiào','are called'],['什么','shén me','what'],['名字','míng zi','name'],['？','','']], en:'What is your name?' },
+ { toks:[['我','wǒ','I'],['叫','jiào','am called'],['安娜','Ān nà','Anna'],['。','','']], en:'My name is Anna.' },
+ { toks:[['你','nǐ','you'],['是','shì','are'],['哪','nǎ','which'],['国','guó','country'],['人','rén','person'],['？','','']], en:'Which country are you from?' },
+ { toks:[['我','wǒ','I'],['是','shì','am'],['美国','Měi guó','USA'],['人','rén','person'],['。','','']], en:'I am American.' },
+ { toks:[['很','hěn','very'],['高兴','gāo xìng','glad'],['认识','rèn shi','to meet'],['你','nǐ','you'],['！','','']], en:'Very glad to meet you!' },
+ { toks:[['这','zhè','this'],['是','shì','is'],['我的','wǒ de','my'],['朋友','péng you','friend'],['。','','']], en:'This is my friend.' }
+]},
+{ id:'prices', label:'Numbers & Prices', mins:3, lines:[
+ { toks:[['一共','yí gòng','in total'],['多少','duō shao','how much'],['钱','qián','money'],['？','','']], en:'How much in total?' },
+ { toks:[['二十五','èr shí wǔ','twenty-five'],['块','kuài','yuan'],['。','','']], en:'Twenty-five yuan.' },
+ { toks:[['这个','zhè ge','this'],['十','shí','ten'],['块','kuài','yuan'],['，','',''],['那个','nà ge','that'],['二十','èr shí','twenty'],['块','kuài','yuan'],['。','','']], en:'This is ten yuan, that is twenty yuan.' },
+ { toks:[['我','wǒ','I'],['可以','kě yǐ','may'],['刷卡','shuā kǎ','pay by card'],['吗','ma','?'],['？','','']], en:'May I pay by card?' },
+ { toks:[['找','zhǎo','give change'],['你','nǐ','you'],['五十','wǔ shí','fifty'],['块','kuài','yuan'],['。','','']], en:'Here is fifty yuan in change.' },
+ { toks:[['请','qǐng','please'],['给','gěi','give'],['我','wǒ','me'],['发票','fā piào','receipt'],['。','','']], en:'Please give me the receipt.' }
+]},
+{ id:'emergency', label:'Emergencies', mins:3, lines:[
+ { toks:[['救命','jiù mìng','help!'],['！','','']], en:'Help!' },
+ { toks:[['我','wǒ','I'],['需要','xū yào','need'],['医生','yī shēng','doctor'],['。','','']], en:'I need a doctor.' },
+ { toks:[['请','qǐng','please'],['帮','bāng','help'],['我','wǒ','me'],['打电话','dǎ diàn huà','make a call'],['。','','']], en:'Please help me make a phone call.' },
+ { toks:[['我的','wǒ de','my'],['护照','hù zhào','passport'],['丢','diū','lost'],['了','le','(particle)'],['。','','']], en:'My passport is lost.' },
+ { toks:[['警察','jǐng chá','police'],['在','zài','are at'],['哪里','nǎ lǐ','where'],['？','','']], en:'Where are the police?' },
+ { toks:[['我','wǒ','I'],['不','bù','not'],['舒服','shū fu','feel well'],['。','','']], en:'I do not feel well.' }
+]}
+];
+var SANDHI_NOTE = 'Tone change (sandhi): 不 bù turns into bú before a 4th tone (bú shì), and 一 yī turns into yí before a 4th tone (yí gòng) or yì before 1st/2nd/3rd tones (yì wǎn). Vocabulary cards show the dictionary tone; phrases show the spoken tone.';
+
+/* ============================================================
+   TONE TRAINER — minimal pair families
+   ============================================================ */
+var MINIMAL_PAIRS = [
+{ base:'ma', items:[['妈','mā','mom'],['麻','má','hemp; numb'],['马','mǎ','horse'],['骂','mà','to scold'],['吗','ma','(question)']] },
+{ base:'ba', items:[['八','bā','eight'],['拔','bá','to pull out'],['把','bǎ','to hold'],['爸','bà','dad'],['吧','ba','(suggestion)']] },
+{ base:'shi', items:[['诗','shī','poem'],['十','shí','ten'],['史','shǐ','history'],['是','shì','to be']] },
+{ base:'wu', items:[['屋','wū','house'],['无','wú','without'],['五','wǔ','five'],['物','wù','thing']] },
+{ base:'yu', items:[['鱼','yú','fish'],['雨','yǔ','rain'],['玉','yù','jade']] },
+{ base:'tang', items:[['汤','tāng','soup'],['糖','táng','sugar'],['躺','tǎng','to lie down'],['烫','tàng','scalding']] },
+{ base:'mai', items:[['买','mǎi','to buy'],['卖','mài','to sell']] },
+{ base:'wen', items:[['温','wēn','warm'],['文','wén','writing'],['吻','wěn','to kiss'],['问','wèn','to ask']] },
+{ base:'yan', items:[['烟','yān','smoke'],['盐','yán','salt'],['眼','yǎn','eye'],['燕','yàn','swallow (bird)']] },
+{ base:'qing', items:[['青','qīng','blue-green'],['情','qíng','feeling'],['请','qǐng','please'],['庆','qìng','to celebrate']] }
+];
+
+/* ============================================================
+   MEDIA LIBRARY — real, level-gated immersion resources
+   ============================================================ */
+var LEVELS = ['A1','A2','B1','B2'];
+var MEDIA = {
+A1: { label:'A1 · Beginner', sections:[
+ { type:'TV & Series', icon:'tv', items:[
+  { t:'Peppa Pig 小猪佩奇 (Mandarin dub)', sub:'YouTube — official channel', why:"Five-minute episodes about daily life. Slow, clear, endlessly repetitive — and the pictures carry the meaning, so you understand without translating. The single best day-one show." },
+  { t:'Little Fox Chinese', sub:'YouTube / app', why:"Animated stories graded by level. Level 1 uses tiny sentences you can follow from your first week." }
+ ]},
+ { type:'Films', icon:'film', items:[
+  { t:'Coco 寻梦环游记 (Mandarin audio)', sub:'Disney+ — switch audio to Mandarin', why:"You already know the story, so your brain maps meaning straight onto the Mandarin. This dubbed-film trick is the closest thing to immersion without leaving your sofa." }
+ ]},
+ { type:'Books & Graded Readers', icon:'book-open', items:[
+  { t:'Mandarin Companion — Breakthrough Level', sub:'Graded readers · ~150 characters', why:"Real stories told with only 150 characters. Finishing your first whole book in Chinese is an enormous motivation win." },
+  { t:'Chinese Breeze — Level 1', sub:'Graded readers · 300 words, free audio', why:"Mini-novels with audio: read and listen at the same time to lock spelling to sound." },
+  { t:'HSK Standard Course 1', sub:'BLCU Press · textbook + workbook', why:"The standard structured path through HSK 1: 150 words, gentle dialogues, recordings included." }
+ ]},
+ { type:'YouTube & Podcasts', icon:'youtube', items:[
+  { t:'Mandarin Corner', sub:'YouTube', why:"Slow beginner dialogues and street interviews with pinyin and English on screen — comprehensible from day one." },
+  { t:'Comprehensible Chinese', sub:'YouTube', why:"TPRS-style teaching: the teacher draws and acts everything out so you understand 95% with zero English." },
+  { t:'Lazy Chinese', sub:'YouTube', why:"Friendly, slow comprehensible-input stories made for absolute beginners." },
+  { t:'ChinesePod — Newbie level', sub:'Podcast', why:"Short dialogues explained in English. Perfect for commutes and dish-washing." },
+  { t:'Coffee Break Chinese', sub:'Podcast', why:"A structured audio course from zero — a calm, steady on-ramp." }
+ ]}
+]},
+A2: { label:'A2 · Elementary', sections:[
+ { type:'TV & Series', icon:'tv', items:[
+  { t:'Happy Chinese 快乐汉语', sub:'CCTV — free on YouTube', why:"A sitcom written FOR learners: natural pace but controlled vocabulary, with on-screen support." },
+  { t:'Growing up with Chinese 成长汉语', sub:'CCTV — free on YouTube', why:"A teen-life learning drama; every episode hands you one reusable sentence pattern." }
+ ]},
+ { type:'Films', icon:'film', items:[
+  { t:'Big Fish & Begonia 大鱼海棠', sub:'Animated film', why:"Gorgeous animation with an emotional story that keeps you watching even when you miss words — exactly how children acquire language." }
+ ]},
+ { type:'Books & Graded Readers', icon:'book-open', items:[
+  { t:'Mandarin Companion — Level 1', sub:'Graded readers · 300 characters', why:"Classic novels retold in 300 characters — yes, Sherlock Holmes in Chinese." },
+  { t:'Chinese Breeze — Level 2', sub:'Graded readers · 500 words', why:"Step up to 500 words while still reading fast and smoothly. Speed builds confidence." },
+  { t:'Graded Chinese Reader 500', sub:'Sinolingua', why:"Short stories with a pinyin cover-card, so you can self-test as you read." }
+ ]},
+ { type:'YouTube & Podcasts', icon:'youtube', items:[
+  { t:'Everyday Chinese', sub:'YouTube', why:"Slow dialogues plus pattern explanations in plain English — a gentle bridge to real listening." },
+  { t:'Grace Mandarin Chinese', sub:'YouTube', why:"Crystal-clear explanations of tones and grammar patterns with excellent visuals." },
+  { t:'TeaTime Chinese 茶歇中文', sub:'Podcast', why:"A slow podcast in simple Chinese: one topic per episode, explained patiently. Your first all-Chinese listening." },
+  { t:'ChinesePod — Elementary', sub:'Podcast', why:"The same trusted dialogue format, one level up." }
+ ]}
+]},
+B1: { label:'B1 · Pre-intermediate', sections:[
+ { type:'TV & Series', icon:'tv', items:[
+  { t:'Home with Kids 家有儿女', sub:'Sitcom — free on YouTube', why:"THE classic family sitcom: everyday vocabulary, clear pronunciation, and hundreds of episodes of free input." },
+  { t:'iPartment 爱情公寓', sub:'Sitcom', why:"A fast, funny flat-share comedy — brilliant for casual speech once you have around 1,000 words." },
+  { t:'A Love So Beautiful 致我们单纯的小美好', sub:'Drama', why:"School romance with simple, repetitive daily dialogue and a story that pulls you through." }
+ ]},
+ { type:'Films', icon:'film', items:[
+  { t:'Hi, Mom 你好，李焕英', sub:'Comedy-drama', why:"A heartwarming hit with clear, standard Mandarin throughout." },
+  { t:'Monkey King: Hero Is Back 大圣归来', sub:'Animated film', why:"Action animation: the visuals carry you over the harder lines." },
+  { t:'Ne Zha 哪吒之魔童降世', sub:'Animated film', why:"The blockbuster — use subtitles for the fast parts and enjoy the ride." }
+ ]},
+ { type:'Books & Graded Readers', icon:'book-open', items:[
+  { t:'Mandarin Companion — Level 2', sub:'Graded readers · 450 characters', why:"Full novels at 450 characters — long-form reading stamina starts here." },
+  { t:'Chinese Breeze — Level 3', sub:'Graded readers · 750 words', why:"Real plots at 750 words; you stop translating and start reading." },
+  { t:'Graded Chinese Reader 1000', sub:'Sinolingua', why:"Adapted short stories by real Chinese authors at the 1,000-word level." }
+ ]},
+ { type:'YouTube & Podcasts', icon:'youtube', items:[
+  { t:'Mandarin Corner — street interviews', sub:'YouTube', why:"Real people at real speed, with full transcripts — your first authentic listening with a safety net." },
+  { t:'Speak Chinese with Da Peng 大鹏说中文', sub:'YouTube', why:"Slow but natural monologues about daily life, fully subtitled in Chinese." },
+  { t:'Chillchat', sub:'Podcast', why:"Relaxed bilingual conversations that model how people actually chat." }
+ ]}
+]},
+B2: { label:'B2 · Intermediate', sections:[
+ { type:'TV & Series', icon:'tv', items:[
+  { t:'All Is Well 都挺好', sub:'Drama', why:"A modern family drama full of natural arguments, negotiations and emotion — adult, real-life Mandarin." },
+  { t:'The Bad Kids 隐秘的角落', sub:'Thriller', why:"A gripping prestige thriller. You will forget you are studying — which is the point." },
+  { t:'Someday or One Day 想见你', sub:'Taiwanese drama', why:"A beloved time-twisting mystery with clear Mandarin and an addictive plot." }
+ ]},
+ { type:'Films', icon:'film', items:[
+  { t:'Dying to Survive 我不是药神', sub:'Drama', why:"An acclaimed modern classic: everyday Mandarin under real emotional stakes." },
+  { t:'The Wandering Earth 流浪地球', sub:'Sci-fi', why:"Big-screen spectacle for listening stamina — subtitles on, popcorn out." }
+ ]},
+ { type:'Books & Graded Readers', icon:'book-open', items:[
+  { t:'The Little Prince 小王子 (Chinese edition)', sub:'Translated classic', why:"You know the story; the language is short, poetic and surprisingly simple — the classic first real book." },
+  { t:'Chinese Breeze — Level 4', sub:'Graded readers · 1,100 words', why:"The last graded step before native young-adult books." },
+  { t:'Graded Chinese Reader 2000', sub:'Sinolingua', why:"Real literature lightly adapted at 2,000 words." }
+ ]},
+ { type:'YouTube & Podcasts', icon:'podcast', items:[
+  { t:'StoryFM 故事FM', sub:'Podcast', why:"Real people tell their life stories — authentic, moving, and clearly narrated. A native podcast you can actually follow." },
+  { t:'Learning Chinese Through Stories', sub:'Podcast', why:"Stories plus line-by-line breakdowns at upper-intermediate level." },
+  { t:'Dashu Mandarin', sub:'Podcast', why:"Three teachers chatting naturally — the perfect bridge into fully native audio." }
+ ]}
+]}
+};
+var TOOLKIT = [
+ { t:'HelloTalk', why:"Language-exchange app: text and voice-message native speakers who correct you. Your conversation partner without leaving home." },
+ { t:'Tandem', why:"Same idea, different community. Try both, keep the one you like." },
+ { t:'Pleco', why:"THE Chinese dictionary app: handwriting lookup, OCR, flashcards, example sentences. Install it today." },
+ { t:'Language Reactor', why:"Browser extension that adds dual subtitles + an instant dictionary to Netflix and YouTube — turns any show into a lesson." },
+ { t:'Anki', why:"Free spaced-repetition app for when you outgrow the deck in this app." },
+ { t:'Shadowing (technique)', why:"Pause after each line of audio and repeat it aloud, copying the exact tones. Ten minutes a day retrains your mouth — no partner needed." },
+ { t:'The dubbed-film trick', why:"Re-watch films you already know with Mandarin audio. Known plot = comprehensible input, anywhere on earth." }
+];
+
+/* ============================================================
+   LEARNING PATH — 8 stages
+   ============================================================ */
+var PATH = [
+{ n:1, t:'Master the tones', dur:'1–2 weeks', mods:['Tone Trainer'],
+  focus:'Before vocabulary: train your ear and eye on the four tones plus neutral. Tones are not decoration — they ARE the word. mā is mom, mǎ is horse.' },
+{ n:2, t:'Top 150 characters', dur:'3–6 weeks', mods:['Characters','Flashcards'],
+  focus:'Learn to recognize and write the 150 most useful characters. Reading unlocks every other skill.' },
+{ n:3, t:'Basic sentence patterns', dur:'2–3 weeks', mods:['Phrases'],
+  focus:'Mandarin is Subject–Verb–Object like English (我爱你 = I love you), plus topic-comment. Absorb patterns from real phrases, never from grammar tables.' },
+{ n:4, t:'HSK 1 vocabulary — 150 words', dur:'4–8 weeks', mods:['Flashcards','Quiz'],
+  focus:'The 150 highest-frequency words cover a huge share of daily speech. Build them with spaced repetition, a few minutes a day.' },
+{ n:5, t:'HSK 2 vocabulary — 300 words', dur:'6–10 weeks', mods:['Flashcards','Quiz','Phrases'],
+  focus:'Double your vocabulary to ~300 words: enough to survive shops, taxis, hotels and small talk.' },
+{ n:6, t:'Read short graded texts', dur:'ongoing habit', mods:['Media','Characters'],
+  focus:'Start Breakthrough-level graded readers (150–300 characters). Extensive reading quietly cements everything you have learned.' },
+{ n:7, t:'HSK 3 + media immersion', dur:'3–6 months', mods:['Media'],
+  focus:'Add learner podcasts and dubbed shows to every day. Your environment becomes Chinese — even with no Chinese speakers around you.' },
+{ n:8, t:'HSK 4 + conversation practice', dur:'6–12 months', mods:['Media','Phrases'],
+  focus:'Language-exchange apps (HelloTalk, Tandem) plus daily shadowing convert all that input into speaking confidence.' }
+];
+
+/* ============================================================
+   STATE — localStorage-backed, Safari-private-mode safe
+   ============================================================ */
+var STORE_KEY = 'inkmandarin_v1';
+var DEFAULT_DB = {
+  settings: { pinyin:true, english:true, dark:false, flip:'normal', goal:20, front:'character' },
+  srs: {},
+  stats: { quiz:[], tone:{ok:0,total:0,streak:0,best:0}, chars:{}, phrases:{},
+           activity:{}, streak:0, lastActive:null, newToday:{date:null,count:0} }
+};
+function deepMerge(base, over){
+  var out = JSON.parse(JSON.stringify(base));
+  if (!over || typeof over !== 'object') return out;
+  Object.keys(over).forEach(function(k){
+    if (out[k] && typeof out[k] === 'object' && !Array.isArray(out[k]) && over[k] && typeof over[k] === 'object' && !Array.isArray(over[k])){
+      out[k] = deepMerge(out[k], over[k]);
+    } else out[k] = over[k];
+  });
+  return out;
+}
+function freshDB(){ return JSON.parse(JSON.stringify(DEFAULT_DB)); }
+function hasWS(){ try{ return typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function'; }catch(e){ return false; } }
+function fromLocal(){
+  try{
+    if (typeof localStorage !== 'undefined'){
+      var raw = localStorage.getItem(STORE_KEY);
+      if (raw) return deepMerge(DEFAULT_DB, JSON.parse(raw));
+    }
+  }catch(e){}
+  return null;
+}
+function loadDB(){
+  return new Promise(function(res){
+    if (!hasWS()){ res(fromLocal() || freshDB()); return; }
+    var settled = false;
+    function done(db){ if (!settled){ settled = true; res(db); } }
+    try{
+      window.storage.get(STORE_KEY).then(function(r){
+        var out = null;
+        try{ if (r && r.value) out = deepMerge(DEFAULT_DB, JSON.parse(r.value)); }catch(e){}
+        done(out || fromLocal() || freshDB());
+      }).catch(function(){ done(fromLocal() || freshDB()); });
+    }catch(e){ done(fromLocal() || freshDB()); }
+    setTimeout(function(){ done(fromLocal() || freshDB()); }, 2500);
+  });
+}
+var DB = freshDB();
+var saveT = null;
+function save(){
+  try{ if (typeof localStorage !== 'undefined') localStorage.setItem(STORE_KEY, JSON.stringify(DB)); }catch(e){}
+  if (hasWS()){
+    if (saveT) clearTimeout(saveT);
+    saveT = setTimeout(function(){
+      try{
+        var p = window.storage.set(STORE_KEY, JSON.stringify(DB));
+        if (p && p.catch) p.catch(function(){});
+      }catch(e){}
+    }, 400);
+  }
+}
+function logAct(n){
+  var t = todayStr(), st = DB.stats;
+  st.activity[t] = (st.activity[t] || 0) + (n || 1);
+  if (st.lastActive !== t){
+    if (st.lastActive && dayDiff(st.lastActive, t) === 1) st.streak = (st.streak || 0) + 1;
+    else st.streak = 1;
+    st.lastActive = t;
+    if (IS_BROWSER){ var el = document.getElementById('streakNum'); if (el) el.textContent = st.streak; }
+  }
+  save();
+}
+
+/* ============================================================
+   SRS — simplified SM-2 (Again / Hard / Good / Easy)
+   ============================================================ */
+function cardId(i){ return 'w' + i; }
+function srsRate(id, r){
+  var c = DB.srs[id] || { ef:2.5, iv:0, reps:0, due:todayStr() };
+  if (r === 0){ c.reps = 0; c.iv = 0; c.ef = Math.max(1.3, c.ef - 0.2); c.due = todayStr(); }
+  else if (r === 1){ c.iv = c.reps === 0 ? 1 : Math.max(1, Math.round(c.iv * 1.2)); c.ef = Math.max(1.3, c.ef - 0.15); c.reps++; c.due = addDaysStr(c.iv); }
+  else if (r === 2){ c.iv = c.reps === 0 ? 1 : (c.reps === 1 ? 6 : Math.round(c.iv * c.ef)); c.reps++; c.due = addDaysStr(c.iv); }
+  else { c.iv = c.reps === 0 ? 3 : Math.max(2, Math.round(c.iv * c.ef * 1.3)); c.ef += 0.15; c.reps++; c.due = addDaysStr(c.iv); }
+  DB.srs[id] = c; logAct(1);
+}
+function previewIv(id, r){
+  var c = DB.srs[id] || { ef:2.5, iv:0, reps:0 };
+  if (r === 0) return '< 10 min';
+  if (r === 1) return (c.reps === 0 ? 1 : Math.max(1, Math.round(c.iv * 1.2))) + 'd';
+  if (r === 2) return (c.reps === 0 ? 1 : (c.reps === 1 ? 6 : Math.round(c.iv * c.ef))) + 'd';
+  return (c.reps === 0 ? 3 : Math.max(2, Math.round(c.iv * c.ef * 1.3))) + 'd';
+}
+function learnedCount(){
+  var n = 0; Object.keys(DB.srs).forEach(function(k){ if (DB.srs[k].iv >= 1) n++; }); return n;
+}
+function dueIds(){
+  var t = todayStr(), out = [];
+  Object.keys(DB.srs).forEach(function(k){ if (DB.srs[k].due <= t) out.push(k); });
+  return out;
+}
+function newBudget(){
+  var nt = DB.stats.newToday;
+  if (nt.date !== todayStr()){ nt.date = todayStr(); nt.count = 0; }
+  return Math.max(0, DB.settings.goal - nt.count);
+}
+function newIds(limit){
+  var out = [];
+  for (var i = 0; i < VOCAB.length && out.length < limit; i++){
+    if (!DB.srs[cardId(i)]) out.push(cardId(i));
+  }
+  return out;
+}
+function buildSession(){
+  var due = dueIds();
+  var fresh = newIds(newBudget());
+  return due.concat(fresh);
+}
+function quizAcc(){
+  var q = DB.stats.quiz, c = 0, t = 0;
+  q.forEach(function(r){ c += r.correct; t += r.total; });
+  return t ? Math.round(100 * c / t) : null;
+}
+function toneAcc(){
+  var t = DB.stats.tone;
+  return t.total ? Math.round(100 * t.ok / t.total) : null;
+}
+function charsDone(){
+  var n = 0; Object.keys(DB.stats.chars).forEach(function(k){ if (DB.stats.chars[k]) n++; }); return n;
+}
+function phrasesSeen(){ return Object.keys(DB.stats.phrases).length; }
+function levelInfo(){
+  var n = learnedCount(), acc = quizAcc() == null ? 100 : quizAcc();
+  if (n < 60)  return { name:'Beginner', cefr:'A1' };
+  if (n < 150) return { name:'Elementary', cefr:'A2' };
+  if (n < 280) return { name:'Pre-intermediate', cefr:'B1' };
+  return acc >= 70 ? { name:'Intermediate', cefr:'B2' } : { name:'Pre-intermediate', cefr:'B1' };
+}
+function pathStatus(){
+  var checks = [
+    DB.stats.tone.total >= 50 && (toneAcc() || 0) >= 80,
+    charsDone() >= 100,
+    phrasesSeen() >= 25,
+    learnedCount() >= 150,
+    learnedCount() >= 300,
+    learnedCount() >= VOCAB.length,
+    false, false
+  ];
+  var current = checks.indexOf(false);
+  if (current === -1) current = PATH.length - 1;
+  return { checks: checks, current: current };
+}
+
+/* ============================================================
+   ROUTER + CHROME
+   ============================================================ */
+var TABS = ['home','flashcards','quiz','characters','media','progress'];
+var TITLES = { home:'', vocab:'Vocabulary', flashcards:'Flashcards', quiz:'Quiz', characters:'Characters',
+  tones:'Tone Trainer', phrases:'Phrases & Dialogues', media:'Immersion Library', path:'Learning Path',
+  progress:'Progress', settings:'Settings' };
+var cur = 'home';
+var timers = [];
+function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
+function clearTimers(){ timers.forEach(function(t){ clearTimeout(t); }); timers = []; }
+var ICONS = {"activity": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2\"></path></svg>", "book-open": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 7v14\"></path><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"></path></svg>", "chevron-down": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m6 9 6 6 6-6\"></path></svg>", "chevron-left": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m15 18-6-6 6-6\"></path></svg>", "chevron-right": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 18 6-6-6-6\"></path></svg>", "chevron-up": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m18 15-6-6-6 6\"></path></svg>", "clock": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><polyline points=\"12 6 12 12 16 14\"></polyline></svg>", "film": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\"></rect><path d=\"M7 3v18\"></path><path d=\"M3 7.5h4\"></path><path d=\"M3 12h18\"></path><path d=\"M3 16.5h4\"></path><path d=\"M17 3v18\"></path><path d=\"M17 7.5h4\"></path><path d=\"M17 16.5h4\"></path></svg>", "flame": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z\"></path></svg>", "home": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"></path><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"></path></svg>", "layers": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z\"></path><path d=\"m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65\"></path><path d=\"m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65\"></path></svg>", "list-checks": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m3 17 2 2 4-4\"></path><path d=\"m3 7 2 2 4-4\"></path><path d=\"M13 6h8\"></path><path d=\"M13 12h8\"></path><path d=\"M13 18h8\"></path></svg>", "lock": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\"></rect><path d=\"M7 11V7a5 5 0 0 1 10 0v4\"></path></svg>", "map": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z\"></path><path d=\"M15 5.764v15\"></path><path d=\"M9 3.236v15\"></path></svg>", "message-circle": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7.9 20A9 9 0 1 0 4 16.1L2 22Z\"></path></svg>", "pen-tool": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15.707 21.293a1 1 0 0 1-1.414 0l-1.586-1.586a1 1 0 0 1 0-1.414l5.586-5.586a1 1 0 0 1 1.414 0l1.586 1.586a1 1 0 0 1 0 1.414z\"></path><path d=\"m18 13-1.375-6.874a1 1 0 0 0-.746-.776L3.235 2.028a1 1 0 0 0-1.207 1.207L5.35 15.879a1 1 0 0 0 .776.746L13 18\"></path><path d=\"m2.3 2.3 7.286 7.286\"></path><circle cx=\"11\" cy=\"11\" r=\"2\"></circle></svg>", "play": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polygon points=\"6 3 20 12 6 21 6 3\"></polygon></svg>", "podcast": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16.85 18.58a9 9 0 1 0-9.7 0\"></path><path d=\"M8 14a5 5 0 1 1 8 0\"></path><circle cx=\"12\" cy=\"11\" r=\"1\"></circle><path d=\"M13 17a1 1 0 1 0-2 0l.5 4.5a.5.5 0 1 0 1 0Z\"></path></svg>", "rotate-ccw": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"></path><path d=\"M3 3v5h5\"></path></svg>", "settings": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z\"></path><circle cx=\"12\" cy=\"12\" r=\"3\"></circle></svg>", "trending-up": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"22 7 13.5 15.5 8.5 10.5 2 17\"></polyline><polyline points=\"16 7 22 7 22 13\"></polyline></svg>", "tv": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"20\" height=\"15\" x=\"2\" y=\"7\" rx=\"2\" ry=\"2\"></rect><polyline points=\"17 2 12 7 7 2\"></polyline></svg>", "youtube": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17\"></path><path d=\"m10 15 5-3-5-3z\"></path></svg>"};
+function icons(){
+  var els = document.querySelectorAll('i[data-lucide]');
+  for (var k = 0; k < els.length; k++){
+    var el = els[k], name = el.getAttribute('data-lucide'), svg = ICONS[name];
+    if (!svg) continue;
+    var box = document.createElement('span');
+    box.innerHTML = svg;
+    var node = box.firstChild;
+    if (el.getAttribute('style')) node.setAttribute('style', el.getAttribute('style'));
+    if (el.getAttribute('class')) node.setAttribute('class', el.getAttribute('class'));
+    el.parentNode.replaceChild(node, el);
+  }
+}
+function go(name){
+  clearTimers();
+  cur = name;
+  render();
+}
+function render(){
+  var s = document.getElementById('screen');
+  SCREENS[cur](s);
+  document.getElementById('headTitle').textContent = TITLES[cur] || '';
+  document.getElementById('backBtn').style.display = TABS.indexOf(cur) > -1 ? 'none' : 'flex';
+  var btns = document.querySelectorAll('#tabbar button');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-tab') === cur);
+  document.getElementById('streakNum').textContent = DB.stats.streak || 0;
+  window.scrollTo(0, 0);
+  icons();
+}
+
+/* ============================================================
+   SHARED RENDER HELPERS
+   ============================================================ */
+function estimateChip(mins){
+  return '<span class="estimate"><i data-lucide="clock"></i>~' + mins + ' min session</span>';
+}
+function pyHTML(v, w){
+  return '<span class="py">' + esc(v.pinyin) + '</span> ' + toneRowFor(v.pinyin, w || 20);
+}
+var TIPS = [
+'Tones first: a wrong tone is a different word, not an accent. Two minutes of tone training beats twenty minutes of vocabulary.',
+'Comprehensible input: understanding messages you ALMOST get is how children learn. Keep it 90% understandable.',
+'No Chinese environment? Build one: dubbed films, learner podcasts, HelloTalk. Your phone is an immersion machine.',
+'Frequency first: every word in this app earned its place by how often people actually say it.',
+'Micro-sessions beat marathons: ten focused minutes every day rewires more than two hours on Sunday.',
+'Adult advantage: you can spot patterns. 火车 = fire + vehicle = train. Logic is your superpower.',
+'Write by hand: tracing characters builds memory that typing never will.'
+];
+
+/* ============================================================
+   SCREEN: HOME
+   ============================================================ */
+function homeScreen(s){
+  var h = new Date().getHours();
+  var greet = h < 12 ? '早上好' : (h < 18 ? '下午好' : '晚上好');
+  var greetEn = h < 12 ? 'Good morning' : (h < 18 ? 'Good afternoon' : 'Good evening');
+  var due = dueIds().length, fresh = Math.min(newBudget(), VOCAB.length - Object.keys(DB.srs).length);
+  var lv = levelInfo();
+  var tip = TIPS[Math.floor(Date.now() / 86400000) % TIPS.length];
+  var doneToday = DB.stats.activity[todayStr()] || 0;
+  var goalPct = clamp(Math.round(100 * doneToday / (DB.settings.goal * 2)), 0, 100);
+  s.innerHTML = '<div class="fadeUp">' +
+  '<h1><span class="zh redTx">' + greet + '</span> · ' + greetEn + '</h1>' +
+  '<p class="sub">Level: <b>' + lv.name + ' (' + lv.cefr + ')</b> · ' + learnedCount() + ' words learned</p>' +
+
+  '<div class="card spread wrap">' +
+    '<div><h2 style="margin:0">Today\u2019s review</h2>' +
+    '<p class="sub" style="margin:4px 0 0">' + due + ' due · ' + fresh + ' new cards waiting ' + estimateChip(Math.max(3, Math.round((due + fresh) * 0.4))) + '</p></div>' +
+    '<button class="btn primary" data-act="startCards"><i data-lucide="play"></i>Start review</button>' +
+  '</div>' +
+
+  '<div class="card mt">' +
+    '<div class="spread"><h3 style="margin:0">Daily goal</h3><span class="small dim">' + doneToday + ' actions today</span></div>' +
+    '<div class="row mt" style="gap:12px"><div class="progressBar"><div style="width:' + goalPct + '%"></div></div><span class="small dim">' + goalPct + '%</span></div>' +
+  '</div>' +
+
+  '<h2 class="mtL">Modules</h2>' +
+  '<div class="grid3">' +
+    modCard('tones', 'activity', 'Tone Trainer', 'The non-negotiable first skill. Pitch curves + minimal pairs.', 3) +
+    modCard('vocab', 'book-open', 'Vocabulary', VOCAB.length + ' frequency-first words in 12 themes.', 5) +
+    modCard('phrases', 'message-circle', 'Phrases', 'Real dialogues with tap-to-break-down words.', 4) +
+    modCard('characters', 'pen-tool', 'Characters', 'Stroke order for the 150 essential characters.', 5) +
+    modCard('quiz', 'list-checks', 'Quiz', 'Four modes with instant feedback.', 4) +
+    modCard('path', 'map', 'Learning Path', 'Your 8-stage roadmap — see where you are.', 2) +
+  '</div>' +
+
+  '<div class="tipCard mtL"><b class="gold">Why this works</b><p style="margin:6px 0 0;font-size:14.5px">' + tip + '</p></div>' +
+
+  '<div class="card mt spread wrap">' +
+    '<div><h3 style="margin:0">Immersion picks for ' + lv.cefr + '</h3><p class="sub" style="margin:4px 0 0">Shows, books and podcasts matched to your level.</p></div>' +
+    '<button class="btn" data-act="goMedia"><i data-lucide="tv"></i>Open library</button>' +
+  '</div>' +
+  '</div>';
+}
+function modCard(target, icon, title, desc, mins){
+  return '<div class="modCard" data-act="go" data-go="' + target + '">' +
+    '<div class="modIcon"><i data-lucide="' + icon + '"></i></div>' +
+    '<h3>' + title + '</h3><p>' + desc + '</p>' + estimateChip(mins) + '</div>';
+}
+
+/* ============================================================
+   SCREEN: VOCABULARY
+   ============================================================ */
+var VS = { cat:'all', q:'', open:-1 };
+function vocabScreen(s){
+  var list = VOCAB.map(function(v, i){ return { v:v, i:i }; }).filter(function(o){
+    if (VS.cat !== 'all' && o.v.category !== VS.cat) return false;
+    if (VS.q){
+      var q = VS.q.toLowerCase();
+      return o.v.character.indexOf(VS.q) > -1 || o.v.pinyin.toLowerCase().indexOf(q) > -1 ||
+             syllBaseList(o.v.pinyin).indexOf(q.replace(/\s+/g,'')) > -1 || o.v.english.toLowerCase().indexOf(q) > -1;
+    }
+    return true;
+  });
+  var chips = '<button class="catChip' + (VS.cat === 'all' ? ' active' : '') + '" data-act="vocCat" data-cat="all">All · ' + VOCAB.length + '</button>' +
+    CATS.map(function(c){
+      var n = VOCAB.filter(function(v){ return v.category === c[0]; }).length;
+      return '<button class="catChip' + (VS.cat === c[0] ? ' active' : '') + '" data-act="vocCat" data-cat="' + c[0] + '">' + c[1] + ' · ' + n + '</button>';
+    }).join('');
+  s.innerHTML = '<div class="fadeUp">' +
+  '<p class="sub">Every word shows its <b>tone contour</b> — the pitch shape is part of the word. ' + estimateChip(5) + '</p>' +
+  '<input class="searchBox" id="vocSearch" placeholder="Search hanzi, pinyin or English…" value="' + esc(VS.q) + '">' +
+  '<div class="catBar mt">' + chips + '</div>' +
+  '<div style="display:flex;flex-direction:column;gap:10px">' +
+  list.map(function(o){
+    var v = o.v, open = VS.open === o.i;
+    var lr = DB.srs[cardId(o.i)] && DB.srs[cardId(o.i)].iv >= 1;
+    return '<div class="vocRow" data-act="vocOpen" data-i="' + o.i + '">' +
+      '<span class="zh">' + v.character + '</span>' +
+      '<div class="vocMain"><div>' + pyHTML(v) + (lr ? ' <span class="tiny gold">●</span>' : '') + '</div>' +
+      '<div class="small dim">' + esc(v.english) + '</div>' +
+      (open ? '<div class="vocEx"><span class="zh">' + esc(v.exampleChinese) + '</span><br><span class="small dim">' + esc(v.exampleEnglish) + '</span></div>' : '') +
+      '</div><i data-lucide="' + (open ? 'chevron-up' : 'chevron-down') + '" style="color:var(--muted)"></i></div>';
+  }).join('') +
+  (list.length ? '' : '<p class="dim center mt">No words match.</p>') +
+  '</div></div>';
+  var inp = document.getElementById('vocSearch');
+  inp.addEventListener('input', function(){ VS.q = inp.value; var keep = inp.selectionStart; render(); var n = document.getElementById('vocSearch'); n.focus(); try{ n.setSelectionRange(keep, keep); }catch(e){} });
+}
+function syllBaseList(p){ return wordToNum(p).replace(/[1-5]/g, '').replace(/\s+/g, ''); }
+
+/* ============================================================
+   SCREEN: FLASHCARDS (SM-2)
+   ============================================================ */
+var FS = { stage:'setup', queue:[], idx:0, flipped:false, done:0, again:0, startN:0 };
+function flashScreen(s){
+  if (FS.stage === 'setup'){
+    var due = dueIds().length, fresh = Math.min(newBudget(), VOCAB.length - Object.keys(DB.srs).length);
+    var n = due + fresh;
+    s.innerHTML = '<div class="fadeUp" style="max-width:640px;margin:0 auto">' +
+    '<div class="card center">' +
+      '<div class="bigGlyph zh redTx noselect">记</div>' +
+      '<h2 class="mt">Spaced repetition</h2>' +
+      '<p class="sub">Rate each card and the app schedules its return just before you would forget — the Anki SM-2 method.</p>' +
+      '<div class="row wrap" style="justify-content:center;gap:8px">' +
+        '<span class="chip">' + due + ' due</span><span class="chip">' + fresh + ' new</span>' + estimateChip(Math.max(2, Math.round(n * 0.4))) +
+      '</div>' +
+      '<div class="divider"></div>' +
+      '<div class="spread wrap"><span class="small dim">Front of card</span><div class="segWrap">' +
+        '<button class="seg' + (DB.settings.front === 'character' ? ' active' : '') + '" data-act="frontSet" data-v="character">汉字</button>' +
+        '<button class="seg' + (DB.settings.front === 'english' ? ' active' : '') + '" data-act="frontSet" data-v="english">English</button>' +
+      '</div></div>' +
+      '<button class="btn primary block mt" data-act="flashStart"' + (n ? '' : ' disabled') + '><i data-lucide="play"></i>' + (n ? 'Start · ' + n + ' cards' : 'All done for today!') + '</button>' +
+      (n ? '' : '<p class="small dim mt">Come back tomorrow, or raise your daily goal in Settings.</p>') +
+    '</div></div>';
+    return;
+  }
+  if (FS.stage === 'done' || FS.idx >= FS.queue.length){
+    s.innerHTML = '<div class="fadeUp center" style="max-width:560px;margin:40px auto">' +
+    '<div class="card"><div class="bigGlyph">🎉</div><h2 class="mt">Session complete</h2>' +
+    '<p class="sub">' + FS.done + ' cards reviewed · ' + FS.again + ' marked “Again”.</p>' +
+    '<p class="small dim">Learned so far: <b>' + learnedCount() + '</b> words. Streak: <b>' + (DB.stats.streak || 0) + ' 🔥</b></p>' +
+    '<div class="row mt" style="justify-content:center;gap:10px">' +
+    '<button class="btn" data-act="go" data-go="home">Home</button>' +
+    '<button class="btn primary" data-act="go" data-go="quiz">Quiz me</button></div></div></div>';
+    return;
+  }
+  var id = FS.queue[FS.idx], i = +id.slice(1), v = VOCAB[i];
+  var isNew = !DB.srs[id];
+  var frontIsChar = DB.settings.front === 'character';
+  var front = frontIsChar
+    ? '<div class="bigzh zh">' + v.character + '</div>' + (DB.settings.pinyin ? '<div>' + pyHTML(v, 24) + '</div>' : '')
+    : '<div class="bigen">' + esc(v.english) + '</div><div class="small dim">' + esc(CATS.filter(function(c){return c[0]===v.category;})[0][1]) + '</div>';
+  var back = '<div class="bigzh zh" style="font-size:64px">' + v.character + '</div>' +
+    '<div>' + pyHTML(v, 24) + '</div>' +
+    (DB.settings.english ? '<div style="font-size:21px;font-weight:600">' + esc(v.english) + '</div>' : '') +
+    '<div class="vocEx" style="width:100%"><span class="zh">' + esc(v.exampleChinese) + '</span>' +
+    (DB.settings.english ? '<br><span class="small dim">' + esc(v.exampleEnglish) + '</span>' : '') + '</div>';
+  s.innerHTML = '<div class="fadeUp">' +
+  '<div class="row mb" style="max-width:560px;margin:0 auto 14px;gap:12px">' +
+    '<div class="progressBar"><div style="width:' + Math.round(100 * FS.idx / FS.queue.length) + '%"></div></div>' +
+    '<span class="small dim" style="white-space:nowrap">' + (FS.idx + 1) + ' / ' + FS.queue.length + '</span>' +
+    (isNew ? '<span class="chip gold">new</span>' : '') +
+    '<button class="btn sm ghost" data-act="flashExit" aria-label="End session" style="padding:6px 12px">✕</button></div>' +
+  '<div class="flipWrap"><div class="flipCard' + (FS.flipped ? ' flipped' : '') + '" data-act="flip">' +
+    '<div class="face">' + front + '<span class="small dim" style="position:absolute;bottom:14px">tap to flip</span></div>' +
+    '<div class="face back">' + back + '</div>' +
+  '</div></div>' +
+  (FS.flipped ?
+    '<div class="rateRow">' +
+    '<button class="rateBtn again" data-act="rate" data-r="0">Again<span class="iv">' + previewIv(id,0) + '</span></button>' +
+    '<button class="rateBtn hard" data-act="rate" data-r="1">Hard<span class="iv">' + previewIv(id,1) + '</span></button>' +
+    '<button class="rateBtn good" data-act="rate" data-r="2">Good<span class="iv">' + previewIv(id,2) + '</span></button>' +
+    '<button class="rateBtn easy" data-act="rate" data-r="3">Easy<span class="iv">' + previewIv(id,3) + '</span></button>' +
+    '</div>'
+  : '<p class="center small dim mt">Think of the ' + (frontIsChar ? 'meaning and tones' : 'character and tones') + ', then flip.</p>') +
+  '</div>';
+}
+
+/* ============================================================
+   SCREEN: QUIZ — 4 modes
+   ============================================================ */
+var QS = { stage:'menu', mode:1, qs:[], idx:0, ok:0, locked:false };
+var QMODES = [
+  { m:1, t:'English → Character', d:'Read the meaning, pick the hanzi.', icon:'list-checks' },
+  { m:2, t:'Character → English', d:'Read the hanzi, pick the meaning.', icon:'book-open' },
+  { m:3, t:'Type the pinyin', d:'Type it, tap the tone marks.', icon:'pen-tool' },
+  { m:4, t:'Pick the tone', d:'One syllable — which tone is it?', icon:'activity' }
+];
+function quizScreen(s){
+  if (QS.stage === 'menu'){
+    var acc = quizAcc();
+    s.innerHTML = '<div class="fadeUp" style="max-width:680px;margin:0 auto">' +
+    '<p class="sub">Ten questions, instant feedback. ' + (acc == null ? 'No quiz history yet.' : 'Historical accuracy: <b>' + acc + '%</b>.') + ' ' + estimateChip(4) + '</p>' +
+    '<div class="grid2">' + QMODES.map(function(q){
+      return '<div class="modCard" data-act="quizStart" data-m="' + q.m + '"><div class="modIcon"><i data-lucide="' + q.icon + '"></i></div><h3>' + q.t + '</h3><p>' + q.d + '</p></div>';
+    }).join('') + '</div></div>';
+    return;
+  }
+  if (QS.stage === 'done'){
+    var pct = Math.round(100 * QS.ok / QS.qs.length);
+    s.innerHTML = '<div class="fadeUp center" style="max-width:560px;margin:40px auto"><div class="card">' +
+    '<div class="bigGlyph">' + (pct >= 80 ? '🏆' : pct >= 50 ? '👍' : '💪') + '</div>' +
+    '<h2 class="mt">' + QS.ok + ' / ' + QS.qs.length + ' correct</h2>' +
+    '<p class="sub">Session accuracy ' + pct + '% · overall ' + (quizAcc() || pct) + '%</p>' +
+    '<div class="row mt" style="justify-content:center;gap:10px">' +
+    '<button class="btn" data-act="go" data-go="quiz">Modes</button>' +
+    '<button class="btn primary" data-act="quizStart" data-m="' + QS.mode + '"><i data-lucide="rotate-ccw"></i>Again</button></div></div></div>';
+    return;
+  }
+  var q = QS.qs[QS.idx];
+  var head = '<div class="row mb" style="gap:12px"><div class="progressBar"><div style="width:' + Math.round(100 * QS.idx / QS.qs.length) + '%"></div></div>' +
+    '<span class="small dim" style="white-space:nowrap">' + (QS.idx + 1) + ' / ' + QS.qs.length + '</span><span class="chip">✓ ' + QS.ok + '</span>' +
+    '<button class="btn sm ghost" data-act="quizExit" aria-label="End quiz" style="padding:6px 12px">✕</button></div>';
+  var body = '';
+  if (QS.mode === 1){
+    body = '<div class="card center"><p class="dim small" style="margin:0">Which character means…</p><h1 style="margin:8px 0 0">' + esc(q.v.english) + '</h1></div>' +
+    '<div class="grid2 mt">' + q.opts.map(function(o, k){
+      return '<button class="quizOpt" data-act="quizPick" data-k="' + k + '"><span class="zh">' + o.character + '</span></button>';
+    }).join('') + '</div>';
+  } else if (QS.mode === 2){
+    body = '<div class="card center"><p class="dim small" style="margin:0">What does this mean?</p><div class="bigGlyph zh" style="font-size:72px;margin-top:6px">' + q.v.character + '</div>' +
+    '<div class="mt">' + toneRowFor(q.v.pinyin, 22) + '</div></div>' +
+    '<div class="grid2 mt">' + q.opts.map(function(o, k){
+      return '<button class="quizOpt" data-act="quizPick" data-k="' + k + '">' + esc(o.english) + '</button>';
+    }).join('') + '</div>';
+  } else if (QS.mode === 3){
+    body = '<div class="card center"><p class="dim small" style="margin:0">Type the pinyin (tap the tone after each syllable)</p>' +
+    '<div class="bigGlyph zh" style="font-size:66px;margin-top:6px">' + q.v.character + '</div>' +
+    '<p class="small dim" style="margin:6px 0 0">' + esc(q.v.english) + '</p></div>' +
+    '<input class="bigInput mt" id="pinIn" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="type letters… (v = ü)">' +
+    '<div class="kbdRow mt">' + [1,2,3,4,5].map(function(t){
+      return '<button class="pinKey" data-act="pinTone" data-t="' + t + '">' + (t === 5 ? '·' : 'a'.replace('a', applyToneMark('a', t))) + '<small>' + (t === 5 ? 'neutral' : 'tone ' + t) + '</small></button>';
+    }).join('') + '<button class="pinKey" data-act="pinBack">⌫<small>delete</small></button></div>' +
+    '<button class="btn primary block mt" data-act="pinCheck">Check</button>' +
+    '<div id="pinFb" class="center small mt" style="min-height:22px"></div>';
+  } else {
+    body = '<div class="card center"><p class="dim small" style="margin:0">Which tone does this syllable carry?</p>' +
+    '<div class="bigGlyph zh" style="font-size:72px;margin-top:6px">' + q.ch + '</div>' +
+    '<h2 style="margin:8px 0 0">' + esc(q.base) + '</h2><p class="small dim" style="margin:4px 0 0">' + esc(q.v.english) + ' · ' + esc(q.v.character) + '</p></div>' +
+    '<div class="toneGrid mt">' + [1,2,3,4,5].map(function(t){
+      return '<button class="toneBtn" data-act="quizTone" data-t="' + t + '">' + toneSVG(t, 34) + '<span>' + (t === 5 ? '·' : applyToneMark(q.base, t)) + '</span></button>';
+    }).join('') + '</div>';
+  }
+  s.innerHTML = '<div class="fadeUp" style="max-width:640px;margin:0 auto">' + head + body + '</div>';
+  var pi = document.getElementById('pinIn'); if (pi) pi.focus();
+}
+function genQuiz(mode){
+  var pool = VOCAB.map(function(v, i){ return { v:v, i:i }; });
+  if (mode === 3) pool = pool.filter(function(o){ return o.v.pinyin.split(' ').length <= 3; });
+  pool = shuffle(pool).slice(0, 10);
+  return pool.map(function(o){
+    var q = { v:o.v, i:o.i };
+    if (mode === 1 || mode === 2){
+      var sameCat = VOCAB.filter(function(w){ return w.category === o.v.category && w !== o.v; });
+      var dis = shuffle(sameCat).slice(0, 3);
+      while (dis.length < 3){ var r = pick(VOCAB); if (r !== o.v && dis.indexOf(r) === -1) dis.push(r); }
+      q.opts = shuffle([o.v].concat(dis));
+      q.ans = q.opts.indexOf(o.v);
+    } else if (mode === 4){
+      var sylls = o.v.pinyin.split(' ');
+      var k = Math.floor(Math.random() * sylls.length);
+      q.ch = Array.from(o.v.character)[k] || o.v.character;
+      q.base = syllBaseOnly(sylls[k]).replace(/v/g, 'ü');
+      q.tone = +syllToNum(sylls[k]).slice(-1);
+    }
+    return q;
+  });
+}
+function quizAnswer(correct, revealFn){
+  if (QS.locked) return;
+  QS.locked = true;
+  if (correct) QS.ok++;
+  logAct(1);
+  revealFn();
+  later(function(){
+    QS.idx++;
+    QS.locked = false;
+    if (QS.idx >= QS.qs.length){
+      QS.stage = 'done';
+      DB.stats.quiz.push({ date:todayStr(), mode:QS.mode, correct:QS.ok, total:QS.qs.length });
+      if (DB.stats.quiz.length > 200) DB.stats.quiz = DB.stats.quiz.slice(-200);
+      save();
+    }
+    render();
+  }, 950);
+}
+
+/* ============================================================
+   SCREEN: CHARACTERS — stroke-order canvas engine
+   ============================================================ */
+var CS = { view:'list', filter:'all', idx:0, mode:'idle', strokeIdx:0, pts:[], drawing:false,
+           fails:0, raf:0, traceStrokes:[], fontReady:false, list:[] };
+function getCSS(name){
+  try{ return getComputedStyle(document.body).getPropertyValue(name).trim() || '#1C1C1E'; }catch(e){ return '#1C1C1E'; }
+}
+function charList(){
+  return CHARS.map(function(c, i){ return { c:c, i:i }; }).filter(function(o){
+    var st = DB.stats.chars[o.c.ch];
+    if (CS.filter === 'guided') return !!STROKES[o.c.ch];
+    if (CS.filter === 'done') return !!st;
+    if (CS.filter === 'todo') return !st;
+    return true;
+  });
+}
+function charsScreen(s){
+  if (CS.view === 'list'){
+    var list = charList();
+    var filters = [['all','All 150'],['guided','Guided'],['todo','To learn'],['done','Done · ' + charsDone()]];
+    s.innerHTML = '<div class="fadeUp">' +
+    '<p class="sub">Watch the stroke order, then trace it yourself. <span class="badge guided">Guided strokes</span> characters check every stroke; <span class="badge trace">Trace mode</span> characters score your full tracing. ' + estimateChip(5) + '</p>' +
+    '<div class="catBar">' + filters.map(function(f){
+      return '<button class="catChip' + (CS.filter === f[0] ? ' active' : '') + '" data-act="charFilter" data-f="' + f[0] + '">' + f[1] + '</button>';
+    }).join('') + '</div>' +
+    '<div class="charGrid mt">' + list.map(function(o){
+      var st = DB.stats.chars[o.c.ch];
+      return '<div class="charTile' + (st ? ' done' : '') + '" data-act="charOpen" data-i="' + o.i + '">' +
+        (STROKES[o.c.ch] ? '<span class="gdot" title="guided"></span>' : '') + (st ? '<span class="dot"></span>' : '') +
+        '<span class="zh">' + o.c.ch + '</span><span class="py">' + esc(o.c.py) + '</span></div>';
+    }).join('') + '</div></div>';
+    return;
+  }
+  var c = CHARS[CS.idx], guided = !!STROKES[c.ch], st = DB.stats.chars[c.ch];
+  s.innerHTML = '<div class="fadeUp" style="max-width:560px;margin:0 auto">' +
+  '<div class="spread mb"><div><span class="zh" style="font-size:30px;font-weight:700">' + c.ch + '</span> ' +
+    '<span class="py">' + esc(c.py) + '</span> ' + toneRowFor(c.py, 20) + '<div class="small dim">' + esc(c.en) + ' · ' + c.st + ' strokes</div></div>' +
+    '<span class="badge ' + (guided ? 'guided' : 'trace') + '">' + (guided ? 'Guided strokes' : 'Trace mode') + '</span></div>' +
+  '<div class="canvasWrap"><canvas id="strokeCv"></canvas></div>' +
+  '<div class="cvCaption" id="cvCap"></div>' +
+  '<div class="row mt wrap" style="justify-content:center;gap:9px">' +
+    '<button class="btn sm" data-act="charDemo"><i data-lucide="play"></i>Watch' + (st ? ' again' : '') + '</button>' +
+    '<button class="btn sm primary" data-act="charPractice"><i data-lucide="pen-tool"></i>Practice</button>' +
+    (guided ? '' : '<button class="btn sm gold" data-act="charCheck"><i data-lucide="list-checks"></i>Check</button>') +
+    '<button class="btn sm ghost" data-act="charReset"><i data-lucide="rotate-ccw"></i>Reset</button>' +
+  '</div>' +
+  '<div class="spread mt">' +
+    '<button class="btn sm ghost" data-act="charNav" data-d="-1"><i data-lucide="chevron-left"></i>Prev</button>' +
+    '<button class="btn sm ghost" data-act="charBack">All characters</button>' +
+    '<button class="btn sm ghost" data-act="charNav" data-d="1">Next<i data-lucide="chevron-right"></i></button>' +
+  '</div>' + (st ? '<p class="center small gold mt">✓ ' + (st === 'mastered' ? 'Mastered with guided strokes' : 'Traced') + '</p>' : '') +
+  '</div>';
+  initCanvas();
+}
+var CV = null;
+function initCanvas(){
+  var cv = document.getElementById('strokeCv');
+  if (!cv) return;
+  var size = cv.clientWidth || 400;
+  var dpr = (window.devicePixelRatio || 1);
+  cv.width = size * dpr; cv.height = size * dpr;
+  var ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  CV = { cv:cv, ctx:ctx, size:size, dpr:dpr, mask:null };
+  CS.mode = 'idle'; CS.strokeIdx = 0; CS.pts = []; CS.traceStrokes = []; CS.fails = 0;
+  cancelAnimationFrame(CS.raf);
+  cv.onpointerdown = cvDown; cv.onpointermove = cvMove; cv.onpointerup = cvUp; cv.onpointercancel = cvUp;
+  var ch = CHARS[CS.idx].ch;
+  if (!STROKES[ch]){
+    try{
+      if (document.fonts && document.fonts.load){
+        document.fonts.load('700 ' + Math.round(CV.size * 0.8) + 'px "Noto Serif SC"').then(function(){ buildMask(); paint(); });
+      }
+    }catch(e){}
+    buildMask();
+  }
+  cap(STROKES[ch] ? 'Tap “Watch” to see the stroke order.' : 'Tap “Watch” to reveal, then trace it and hit “Check”.');
+  paint();
+}
+function cap(t){ var el = document.getElementById('cvCap'); if (el) el.textContent = t; }
+function buildMask(){
+  var ch = CHARS[CS.idx].ch, size = CV.size;
+  var m = document.createElement('canvas'); m.width = size; m.height = size;
+  var mx = m.getContext('2d');
+  mx.fillStyle = '#000';
+  mx.font = '700 ' + Math.round(size * 0.8) + 'px "Noto Serif SC","Songti SC","STSong",serif';
+  mx.textAlign = 'center'; mx.textBaseline = 'middle';
+  mx.fillText(ch, size / 2, size * 0.55);
+  try{ CV.mask = mx.getImageData(0, 0, size, size); }catch(e){ CV.mask = null; }
+}
+function maskAt(x, y){
+  if (!CV.mask) return false;
+  var ix = Math.round(x), iy = Math.round(y);
+  if (ix < 0 || iy < 0 || ix >= CV.size || iy >= CV.size) return false;
+  return CV.mask.data[(iy * CV.size + ix) * 4 + 3] > 40;
+}
+function drawGrid(){
+  var x = CV.ctx, s = CV.size, line = getCSS('--line');
+  x.clearRect(0, 0, s, s);
+  x.strokeStyle = line; x.lineWidth = 1; x.setLineDash([6, 7]);
+  x.beginPath();
+  x.moveTo(s/2, 6); x.lineTo(s/2, s-6); x.moveTo(6, s/2); x.lineTo(s-6, s/2);
+  x.moveTo(8, 8); x.lineTo(s-8, s-8); x.moveTo(s-8, 8); x.lineTo(8, s-8);
+  x.stroke(); x.setLineDash([]);
+}
+function pathOf(stroke){ return stroke.map(function(p){ return [p[0] / 100 * CV.size, p[1] / 100 * CV.size]; }); }
+function drawStroke(pts, color, w, partial){
+  var x = CV.ctx;
+  x.strokeStyle = color; x.lineWidth = w; x.lineCap = 'round'; x.lineJoin = 'round';
+  var arr = partial == null ? pts : pts.slice(0, Math.max(2, partial));
+  x.beginPath();
+  x.moveTo(arr[0][0], arr[0][1]);
+  for (var i = 1; i < arr.length; i++) x.lineTo(arr[i][0], arr[i][1]);
+  x.stroke();
+}
+function paint(extra){
+  if (!CV) return;
+  drawGrid();
+  var ch = CHARS[CS.idx].ch, ink = getCSS('--ink'), guide = getCSS('--line'), s = CV.size, x = CV.ctx;
+  var bw = s * 0.075;
+  if (STROKES[ch]){
+    var strokes = STROKES[ch].map(pathOf);
+    if (CS.mode === 'practice' || CS.mode === 'idle'){
+      strokes.forEach(function(p, i){
+        if (i >= CS.strokeIdx && CS.mode === 'practice') drawStroke(p, guide, bw);
+      });
+      if (CS.mode === 'practice' && CS.strokeIdx < strokes.length){
+        var st = strokes[CS.strokeIdx];
+        x.fillStyle = '#C0392B';
+        x.beginPath(); x.arc(st[0][0], st[0][1], 7, 0, 7); x.fill();
+      }
+    }
+    strokes.forEach(function(p, i){ if (i < CS.strokeIdx) drawStroke(p, ink, bw); });
+  } else {
+    if (CS.mode !== 'idle' || DB.stats.chars[ch]){
+      x.save();
+      x.globalAlpha = 0.16;
+      x.fillStyle = ink;
+      x.font = '700 ' + Math.round(s * 0.8) + 'px "Noto Serif SC","Songti SC","STSong",serif';
+      x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.fillText(ch, s / 2, s * 0.55);
+      x.restore();
+    }
+    CS.traceStrokes.forEach(function(p){ drawStroke(p, ink, bw * 0.8); });
+  }
+  if (CS.pts.length > 1) drawStroke(CS.pts, CS.mode === 'practice' && STROKES[ch] ? '#C0392B' : ink, bw * 0.8);
+  if (extra) extra();
+}
+/* --- demo animations --- */
+function charDemo(){
+  var ch = CHARS[CS.idx].ch;
+  cancelAnimationFrame(CS.raf);
+  CS.pts = [];
+  if (STROKES[ch]){
+    CS.mode = 'demo'; CS.strokeIdx = 0;
+    var strokes = STROKES[ch].map(pathOf).map(function(p){ return resample(p, 36); });
+    var si = 0, pi = 2;
+    cap('Stroke 1 of ' + strokes.length + ' — watch the direction.');
+    function step(){
+      if (si >= strokes.length){
+        CS.mode = 'practice'; CS.strokeIdx = 0; CS.pts = [];
+        cap('Your turn: draw stroke 1, starting at the red dot.');
+        paint(); return;
+      }
+      CS.strokeIdx = si;
+      paint(function(){ drawStroke(strokes[si], getCSS('--ink'), CV.size * 0.075, pi); });
+      pi += 2;
+      if (pi > strokes[si].length){ si++; pi = 2; if (si < strokes.length) cap('Stroke ' + (si + 1) + ' of ' + strokes.length + '.'); }
+      CS.raf = requestAnimationFrame(step);
+    }
+    step();
+  } else {
+    CS.mode = 'reveal';
+    var t0 = null, dur = 1400, s = CV.size;
+    cap('Watch the shape — then trace over it.');
+    function wipe(ts){
+      if (!t0) t0 = ts;
+      var k = Math.min(1, (ts - t0) / dur);
+      drawGrid();
+      var x = CV.ctx;
+      x.save();
+      x.beginPath(); x.rect(0, 0, s, s * k + (s * 0.2 * k)); x.clip();
+      x.globalAlpha = 0.16; x.fillStyle = getCSS('--ink');
+      x.font = '700 ' + Math.round(s * 0.8) + 'px "Noto Serif SC","Songti SC","STSong",serif';
+      x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.fillText(CHARS[CS.idx].ch, s / 2, s * 0.55);
+      x.restore();
+      CS.traceStrokes.forEach(function(p){ drawStroke(p, getCSS('--ink'), s * 0.06); });
+      if (k < 1) CS.raf = requestAnimationFrame(wipe);
+      else { CS.mode = 'practice'; cap('Trace the character, then tap “Check”.'); paint(); }
+    }
+    CS.raf = requestAnimationFrame(wipe);
+  }
+}
+/* --- geometry --- */
+function resample(pts, n){
+  var total = 0, segs = [];
+  for (var i = 1; i < pts.length; i++){
+    var d = Math.hypot(pts[i][0] - pts[i-1][0], pts[i][1] - pts[i-1][1]);
+    segs.push(d); total += d;
+  }
+  if (total === 0) return pts.slice();
+  var out = [pts[0]], step = total / (n - 1), dist = 0, target = step, i2 = 1;
+  var a = pts[0];
+  while (out.length < n - 1 && i2 < pts.length){
+    var b = pts[i2], d2 = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (dist + d2 >= target){
+      var k = (target - dist) / d2;
+      var p = [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+      out.push(p); a = p; dist = 0; target = step;
+    } else { dist += d2; a = b; i2++; }
+  }
+  out.push(pts[pts.length - 1]);
+  return out;
+}
+function strokeScore(user, target){
+  if (user.length < 2) return false;
+  var U = resample(user, 24), T = resample(target, 24);
+  var sum = 0;
+  for (var i = 0; i < 24; i++) sum += Math.hypot(U[i][0] - T[i][0], U[i][1] - T[i][1]);
+  var mean = sum / 24;
+  var startD = Math.hypot(U[0][0] - T[0][0], U[0][1] - T[0][1]);
+  var uv = [U[23][0] - U[0][0], U[23][1] - U[0][1]], tv = [T[23][0] - T[0][0], T[23][1] - T[0][1]];
+  var dot = uv[0] * tv[0] + uv[1] * tv[1];
+  var scale = CV.size / 100;
+  return mean < 11 * scale && startD < 20 * scale && dot >= 0;
+}
+/* --- pointer handlers --- */
+function evPos(e){
+  var r = CV.cv.getBoundingClientRect();
+  return [e.clientX - r.left, e.clientY - r.top];
+}
+function cvDown(e){
+  if (CS.mode !== 'practice') return;
+  e.preventDefault();
+  try{ CV.cv.setPointerCapture(e.pointerId); }catch(err){}
+  CS.drawing = true; CS.pts = [evPos(e)];
+}
+function cvMove(e){
+  if (!CS.drawing) return;
+  e.preventDefault();
+  CS.pts.push(evPos(e));
+  paint();
+}
+function cvUp(){
+  if (!CS.drawing) return;
+  CS.drawing = false;
+  var ch = CHARS[CS.idx].ch;
+  if (STROKES[ch]){
+    var target = pathOf(STROKES[ch][CS.strokeIdx]);
+    if (strokeScore(CS.pts, target)){
+      CS.strokeIdx++; CS.fails = 0; CS.pts = [];
+      if (CS.strokeIdx >= STROKES[ch].length){
+        DB.stats.chars[ch] = 'mastered'; logAct(2); save();
+        cap('完成！Character mastered. 🎉');
+        CS.mode = 'idle';
+        paint();
+        later(render, 900);
+      } else { cap('✓ Stroke ' + CS.strokeIdx + ' — now stroke ' + (CS.strokeIdx + 1) + '.'); paint(); }
+    } else {
+      CS.fails++;
+      var bad = CS.pts.slice(); CS.pts = [];
+      paint(function(){ drawStroke(bad, 'rgba(192,57,43,.55)', CV.size * 0.05); });
+      if (CS.fails >= 3){
+        CS.fails = 0;
+        cap('Watch this stroke once more…');
+        var t = resample(target, 36), pi = 2;
+        cancelAnimationFrame(CS.raf);
+        (function show(){
+          paint(function(){ drawStroke(t, getCSS('--gold') || '#C9A227', CV.size * 0.07, pi); });
+          pi += 2;
+          if (pi <= t.length) CS.raf = requestAnimationFrame(show);
+          else { cap('Your turn — start at the red dot.'); paint(); }
+        })();
+      } else cap('Not quite — check the start point and direction.');
+    }
+  } else {
+    if (CS.pts.length > 1) CS.traceStrokes.push(CS.pts.slice());
+    CS.pts = [];
+    paint();
+  }
+}
+function traceCheck(){
+  var ch = CHARS[CS.idx].ch;
+  if (!CV.mask){ buildMask(); }
+  var all = [];
+  CS.traceStrokes.forEach(function(st){ resample(st, Math.max(8, st.length)).forEach(function(p){ all.push(p); }); });
+  if (all.length < 8){ cap('Trace the whole character first.'); return; }
+  var on = 0;
+  all.forEach(function(p){ if (maskAt(p[0], p[1]) || maskAt(p[0]+4, p[1]) || maskAt(p[0]-4, p[1]) || maskAt(p[0], p[1]+4) || maskAt(p[0], p[1]-4)) on++; });
+  var onInk = on / all.length;
+  var grid = {};
+  all.forEach(function(p){ grid[(p[0] / 12 | 0) + '_' + (p[1] / 12 | 0)] = 1; });
+  var tot = 0, hit = 0, step = 5;
+  for (var y = 0; y < CV.size; y += step) for (var x2 = 0; x2 < CV.size; x2 += step){
+    if (maskAt(x2, y)){
+      tot++;
+      var gx = x2 / 12 | 0, gy = y / 12 | 0, found = false;
+      for (var a = -1; a <= 1 && !found; a++) for (var b = -1; b <= 1 && !found; b++) if (grid[(gx+a)+'_'+(gy+b)]) found = true;
+      if (found) hit++;
+    }
+  }
+  var cov = tot ? hit / tot : 0;
+  if (onInk > 0.72 && cov > 0.5){
+    DB.stats.chars[ch] = DB.stats.chars[ch] === 'mastered' ? 'mastered' : 'traced';
+    logAct(2); save();
+    cap('漂亮！Traced — ' + Math.round(onInk * 100) + '% on the ink. 🎉');
+    later(render, 900);
+  } else if (onInk <= 0.72){
+    cap('Stay on the gray character — ' + Math.round(onInk * 100) + '% of your ink was on it. Try again.');
+  } else {
+    cap('Good aim, but cover more of the character (' + Math.round(cov * 100) + '% covered).');
+  }
+}
+
+/* ============================================================
+   SCREEN: TONE TRAINER
+   ============================================================ */
+var TS = { q:null, locked:false, unlockShown:false };
+function pairsUnlocked(){ return DB.stats.tone.total >= 30 || DB.stats.tone.streak >= 8 || DB.stats.tone.best >= 8; }
+function toneNext(){
+  var usePair = pairsUnlocked() && Math.random() < 0.5;
+  if (usePair){
+    var fam = pick(MINIMAL_PAIRS);
+    var it = pick(fam.items);
+    TS.q = { ch:it[0], base:fam.base, tone:+syllToNum(it[1]).slice(-1), en:it[2], fam:fam };
+  } else {
+    var v = pick(VOCAB);
+    var sylls = v.pinyin.split(' ');
+    var k = Math.floor(Math.random() * sylls.length);
+    TS.q = { ch:Array.from(v.character)[k] || v.character, base:syllBaseOnly(sylls[k]).replace(/v/g,'ü'),
+             tone:+syllToNum(sylls[k]).slice(-1), en:v.english + ' · ' + v.character, fam:null };
+  }
+}
+function tonesScreen(s){
+  if (!TS.q) toneNext();
+  var t = DB.stats.tone, q = TS.q;
+  var unlocked = pairsUnlocked();
+  s.innerHTML = '<div class="fadeUp" style="max-width:640px;margin:0 auto">' +
+  '<div class="row wrap mb" style="gap:8px">' +
+    '<span class="chip"><i data-lucide="flame" style="width:14px;height:14px"></i> streak ' + t.streak + '</span>' +
+    '<span class="chip">best ' + t.best + '</span>' +
+    '<span class="chip">' + (toneAcc() == null ? '—' : toneAcc() + '%') + ' accuracy</span>' +
+    (unlocked ? '<span class="chip gold">minimal pairs on</span>' : '<span class="chip">' + Math.max(0, 30 - t.total) + ' to unlock minimal pairs</span>') +
+    estimateChip(3) + '</div>' +
+  '<div class="card center">' +
+    '<p class="dim small" style="margin:0">This character\u2019s syllable is…</p>' +
+    '<div class="bigGlyph zh" style="font-size:78px;margin-top:6px">' + q.ch + '</div>' +
+    '<h2 style="margin:6px 0 0">' + esc(q.base) + '</h2>' +
+    '<p class="small dim" style="margin:4px 0 0">' + esc(q.en) + '</p></div>' +
+  '<div class="toneGrid mt">' + [1,2,3,4,5].map(function(tt){
+    return '<button class="toneBtn" data-act="toneAns" data-t="' + tt + '">' + toneSVG(tt, 34) +
+      '<span>' + (tt === 5 ? '· ' + esc(q.base) : esc(applyToneMark(q.base.replace(/ü/g,'v'), tt))) + '</span>' +
+      '<span class="tiny dim">' + TONE_NAMES[tt] + '</span></button>';
+  }).join('') + '</div>' +
+  '<div id="toneFam" class="mt"></div>' +
+  '<p class="small dim center mt">No audio needed: you are training tone <i>recall</i> — which pitch shape belongs to which word. That is the skill that makes listening click.</p>' +
+  '</div>';
+}
+
+/* ============================================================
+   SCREEN: PHRASES & DIALOGUES
+   ============================================================ */
+var PS = { ctx:'restaurant', breakdown:false, sel:null };
+function phrasesScreen(s){
+  var ctx = PHRASES.filter(function(p){ return p.id === PS.ctx; })[0] || PHRASES[0];
+  s.innerHTML = '<div class="fadeUp">' +
+  '<div class="catBar">' + PHRASES.map(function(p){
+    return '<button class="catChip' + (p.id === PS.ctx ? ' active' : '') + '" data-act="phCtx" data-id="' + p.id + '">' + p.label + '</button>';
+  }).join('') + '</div>' +
+  '<div class="spread wrap mt"><div>' + estimateChip(ctx.mins) +
+  '</div><button class="btn sm' + (PS.breakdown ? ' gold' : '') + '" data-act="phBreak"><i data-lucide="message-circle"></i>' + (PS.breakdown ? 'Breakdown: ON — tap any word' : 'Breakdown mode') + '</button></div>' +
+  '<div style="display:flex;flex-direction:column;gap:10px" class="mt">' +
+  ctx.lines.map(function(L, li){
+    var zh = L.toks.map(function(tk, k){
+      if (!tk[1]) return '<span class="zh">' + tk[0] + '</span>';
+      var sel = PS.sel && PS.sel[0] === li && PS.sel[1] === k;
+      return '<span class="tok zh' + (PS.breakdown ? ' on' : '') + (sel ? ' sel' : '') + '" data-act="phTok" data-li="' + li + '" data-k="' + k + '">' + tk[0] + '</span>';
+    }).join('');
+    var py = L.toks.filter(function(tk){ return tk[1]; }).map(function(tk){ return esc(tk[1]); }).join('  ');
+    var info = '';
+    if (PS.sel && PS.sel[0] === li){
+      var tk = L.toks[PS.sel[1]];
+      info = '<div class="tokInfo"><b class="zh">' + tk[0] + '</b> · <span class="py">' + esc(tk[1]) + '</span> ' + toneRowFor(tk[1], 18) + ' — ' + esc(tk[2]) + '</div>';
+    }
+    return '<div class="phraseLine"><div class="zhline">' + zh + '</div>' +
+      '<div class="py" style="margin-top:4px">' + py + '</div>' +
+      (DB.settings.english ? '<div class="small dim" style="margin-top:3px">' + esc(L.en) + '</div>' : '') + info + '</div>';
+  }).join('') + '</div>' +
+  '<div class="tipCard mt"><b class="gold">Pattern spotlight</b><p style="margin:6px 0 0;font-size:14.5px">Mandarin is Subject–Verb–Object, just like English: <span class="zh">我爱你</span> <span class="py">wǒ ài nǐ</span> = I-love-you. The other big pattern is topic-comment: <span class="zh">北京，我去过</span> — “Beijing, I have been (there).” Notice these shapes in the lines above.</p></div>' +
+  '<p class="small dim mt">' + esc(SANDHI_NOTE) + '</p>' +
+  '</div>';
+}
+
+/* ============================================================
+   SCREEN: MEDIA / IMMERSION LIBRARY
+   ============================================================ */
+var MS = { lv:null };
+function mediaScreen(s){
+  var myLv = levelInfo().cefr;
+  var myIdx = LEVELS.indexOf(myLv);
+  if (!MS.lv) MS.lv = myLv;
+  var shownIdx = LEVELS.indexOf(MS.lv);
+  var locked = shownIdx > myIdx;
+  var data = MEDIA[MS.lv];
+  s.innerHTML = '<div class="fadeUp">' +
+  '<div class="tipCard mb"><b class="gold">No Chinese environment? No problem.</b><p style="margin:6px 0 0;font-size:14.5px">Immersion is input you mostly understand, every day. Dubbed films, graded readers, learner podcasts and exchange apps build a Chinese bubble anywhere on earth. Your level — <b>' + levelInfo().name + ' (' + myLv + ')</b> — is estimated from your words learned and quiz accuracy, and unlocks the right shelf below.</p></div>' +
+  '<div class="lvTabs">' + LEVELS.map(function(lv, i){
+    var isLock = i > myIdx;
+    return '<button class="catChip' + (MS.lv === lv ? ' active' : '') + '" data-act="mediaLv" data-lv="' + lv + '">' +
+      (isLock ? '🔒 ' : '') + MEDIA[lv].label + '</button>';
+  }).join('') + '</div>' +
+  (locked ? '<p class="small dim mb">This shelf unlocks at ' + MS.lv + ' — browsing ahead is allowed, using it early is even better.</p>' : '') +
+  data.sections.map(function(sec){
+    return '<h2 class="mtL" style="display:flex;align-items:center;gap:8px"><i data-lucide="' + sec.icon + '" style="width:20px;height:20px;color:var(--gold)"></i>' + sec.type + '</h2>' +
+    '<div class="grid2">' + sec.items.map(function(it){
+      return '<div class="mediaCard' + (locked ? ' locked' : '') + '">' + (locked ? '<span class="lockTag"><i data-lucide="lock" style="width:11px;height:11px"></i>Unlock later</span>' : '') +
+        '<div class="typeTag">' + sec.type + '</div><h3 style="margin:0">' + esc(it.t) + '</h3>' +
+        '<div class="small dim">' + esc(it.sub) + '</div><p class="why">' + esc(it.why) + '</p></div>';
+    }).join('') + '</div>';
+  }).join('') +
+  '<h2 class="mtL">The no-immersion toolkit · all levels</h2>' +
+  '<div class="grid2">' + TOOLKIT.map(function(it){
+    return '<div class="mediaCard"><div class="typeTag">Tool</div><h3 style="margin:0">' + esc(it.t) + '</h3><p class="why">' + esc(it.why) + '</p></div>';
+  }).join('') + '</div></div>';
+}
+
+/* ============================================================
+   SCREEN: LEARNING PATH
+   ============================================================ */
+function stageMetric(i){
+  var L = learnedCount();
+  switch (i){
+    case 0: return DB.stats.tone.total + '/50 attempts · ' + (toneAcc() == null ? 0 : toneAcc()) + '% accuracy (need 80%)';
+    case 1: return charsDone() + '/100 characters practiced';
+    case 2: return phrasesSeen() + '/25 phrase words explored';
+    case 3: return L + '/150 words learned';
+    case 4: return L + '/300 words learned';
+    case 5: return L + '/' + VOCAB.length + ' words · start graded readers';
+    default: return 'Ongoing — live in the Media library';
+  }
+}
+function pathScreen(s){
+  var st = pathStatus();
+  s.innerHTML = '<div class="fadeUp" style="max-width:760px;margin:0 auto">' +
+  '<p class="sub">The research-backed order for adult learners with no immersion environment: sounds → characters → patterns → vocabulary → input. Your current stage is highlighted. ' + estimateChip(2) + '</p>' +
+  PATH.map(function(p, i){
+    var cls = i < st.current ? 'done' : (i === st.current ? 'current' : 'locked');
+    return '<div class="stage ' + cls + '"><div class="stageNum">' + (i < st.current ? '✓' : p.n) + '</div>' +
+    '<div class="card cardTight"><div class="spread wrap"><h3 style="margin:0">' + p.t + '</h3><span class="chip">' + p.dur + '</span></div>' +
+    '<p class="small" style="margin:8px 0">' + p.focus + '</p>' +
+    '<div class="row wrap" style="gap:6px">' + p.mods.map(function(m){ return '<span class="chip gold">' + m + '</span>'; }).join('') + '</div>' +
+    '<p class="tiny dim" style="margin:8px 0 0">' + stageMetric(i) + '</p>' +
+    '</div></div>';
+  }).join('') + '</div>';
+}
+
+/* ============================================================
+   SCREEN: PROGRESS DASHBOARD
+   ============================================================ */
+function encourage(){
+  var st = DB.stats.streak || 0, acc = quizAcc(), L = learnedCount();
+  if (st >= 14) return '两个星期了！Two straight weeks — this is no longer studying, it is a habit. 加油！';
+  if (st >= 7) return '一个星期！A full week of daily Chinese. Habits beat heroics — keep the chain alive.';
+  if (acc != null && acc >= 85 && L >= 50) return '真棒！' + acc + '% accuracy and ' + L + ' words — you are learning faster than you think.';
+  if (L >= 150) return 'HSK 1 vocabulary is behind you. Shops, taxis and menus are starting to make sense.';
+  if (L >= 20) return '万事开头难 — the start is the hardest part, and you are already past it.';
+  if (st >= 2) return 'Day ' + st + ' in a row. Ten minutes today is worth more than two hours someday.';
+  return '你好，未来的中文使用者! Every expert was once a beginner who showed up today.';
+}
+function progressScreen(s){
+  var lv = levelInfo(), acc = quizAcc();
+  var days = [], max = 1;
+  for (var i = 6; i >= 0; i--){
+    var d = new Date(); d.setDate(d.getDate() - i);
+    var key = todayStr(d);
+    var n = DB.stats.activity[key] || 0;
+    max = Math.max(max, n);
+    days.push({ d:['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()], n:n, today:i === 0 });
+  }
+  var modeAcc = QMODES.map(function(m){
+    var rs = DB.stats.quiz.filter(function(r){ return r.mode === m.m; });
+    var c = 0, t = 0; rs.forEach(function(r){ c += r.correct; t += r.total; });
+    return { t:m.t, v: t ? Math.round(100 * c / t) + '%' : '—' };
+  });
+  s.innerHTML = '<div class="fadeUp">' +
+  '<div class="card spread wrap"><div><h2 style="margin:0">' + lv.name + ' <span class="gold">· ' + lv.cefr + '</span></h2>' +
+  '<p class="sub" style="margin:4px 0 0">Estimated from words learned + quiz accuracy.</p></div>' +
+  '<span class="bigGlyph zh redTx noselect">进</span></div>' +
+  '<div class="statGrid mt">' +
+    '<div class="statCard"><div class="num">' + learnedCount() + '</div><div class="lbl">words learned</div></div>' +
+    '<div class="statCard"><div class="num">' + dueIds().length + '</div><div class="lbl">due today</div></div>' +
+    '<div class="statCard"><div class="num">' + (DB.stats.streak || 0) + ' 🔥</div><div class="lbl">day streak</div></div>' +
+    '<div class="statCard"><div class="num">' + (acc == null ? '—' : acc + '%') + '</div><div class="lbl">quiz accuracy</div></div>' +
+  '</div>' +
+  '<div class="card mt"><h3>This week</h3><div class="weekChart">' +
+  days.map(function(d){
+    var h = Math.max(4, Math.round(100 * d.n / max));
+    return '<div class="weekCol"><div class="weekBar" style="height:' + h + '%;' + (d.today ? '' : 'opacity:.55') + '"></div><span class="d">' + d.d + '</span></div>';
+  }).join('') + '</div><p class="tiny dim" style="margin:8px 0 0">Bars count learning actions: card ratings, quiz answers, tones, characters and phrase taps.</p></div>' +
+  '<div class="card mt"><h3>Quiz accuracy by mode</h3>' +
+  modeAcc.map(function(m){ return '<div class="spread" style="padding:7px 0;border-bottom:1px solid var(--line)"><span class="small">' + m.t + '</span><b>' + m.v + '</b></div>'; }).join('') +
+  '<div class="spread" style="padding:7px 0"><span class="small">Tone trainer</span><b>' + (toneAcc() == null ? '—' : toneAcc() + '%') + '</b></div></div>' +
+  '<div class="tipCard mt"><b class="gold">Keep going</b><p style="margin:6px 0 0;font-size:15px">' + encourage() + '</p></div>' +
+  '<div class="row mt" style="gap:10px;flex-wrap:wrap">' +
+  '<button class="btn" data-act="go" data-go="path"><i data-lucide="map"></i>Learning path</button>' +
+  '<button class="btn primary" data-act="startCards"><i data-lucide="play"></i>Review now</button></div>' +
+  '</div>';
+}
+
+/* ============================================================
+   SCREEN: SETTINGS
+   ============================================================ */
+function settingsScreen(s){
+  var g = DB.settings;
+  function tog(key, label, sub){
+    return '<div class="setRow"><div><b>' + label + '</b><div class="small dim">' + sub + '</div></div>' +
+    '<button class="toggle' + (g[key] ? ' on' : '') + '" data-act="setTog" data-k="' + key + '" aria-label="' + label + '"></button></div>';
+  }
+  function seg(key, label, opts){
+    return '<div class="setRow"><b>' + label + '</b><div class="segWrap">' + opts.map(function(o){
+      return '<button class="seg' + (String(g[key]) === String(o[0]) ? ' active' : '') + '" data-act="setSeg" data-k="' + key + '" data-v="' + o[0] + '">' + o[1] + '</button>';
+    }).join('') + '</div></div>';
+  }
+  s.innerHTML = '<div class="fadeUp" style="max-width:640px;margin:0 auto"><div class="card">' +
+  tog('pinyin', 'Show pinyin on card fronts', 'Hide it to force pure character reading.') +
+  tog('english', 'Show English translations', 'Hide for deeper immersion once you are ready.') +
+  tog('dark', 'Dark mode', 'Ink on slate instead of ink on rice paper.') +
+  seg('flip', 'Flashcard flip speed', [['slow','Slow'],['normal','Normal'],['fast','Fast']]) +
+  seg('goal', 'Daily review goal', [[10,'10'],[20,'20'],[50,'50']]) +
+  seg('front', 'Flashcard front', [['character','汉字'],['english','English']]) +
+  '</div>' +
+  '<div class="card mt"><h3>About</h3><p class="small dim" style="margin:0">墨语 Ink Mandarin · everything runs on this device. Progress saves automatically on this device — no account needed. Works inside Claude and in any browser.</p></div>' +
+  '<button class="btn block mt" style="color:var(--bad)" data-act="resetAll"><i data-lucide="rotate-ccw"></i>Reset all progress</button>' +
+  '</div>';
+}
+function applySettings(){
+  document.body.classList.toggle('dark', !!DB.settings.dark);
+  var sp = { slow:'0.9s', normal:'0.55s', fast:'0.28s' }[DB.settings.flip] || '0.55s';
+  document.documentElement.style.setProperty('--flip', sp);
+}
+var SCREENS = { home:homeScreen, vocab:vocabScreen, flashcards:flashScreen, quiz:quizScreen,
+  characters:charsScreen, tones:tonesScreen, phrases:phrasesScreen, media:mediaScreen,
+  path:pathScreen, progress:progressScreen, settings:settingsScreen };
+
+/* ============================================================
+   ACTIONS — single delegated click handler
+   ============================================================ */
+function startReviewSession(){
+  var q = buildSession();
+  if (!q.length){ FS.stage = 'setup'; go('flashcards'); return; }
+  FS = { stage:'run', queue:q, idx:0, flipped:false, done:0, again:0, startN:q.length };
+  go('flashcards');
+}
+var ACTIONS = {
+  go: function(el){ go(el.getAttribute('data-go')); },
+  goMedia: function(){ MS.lv = null; go('media'); },
+  startCards: function(){ startReviewSession(); },
+  frontSet: function(el){ DB.settings.front = el.getAttribute('data-v'); save(); render(); },
+  flashStart: function(){ startReviewSession(); },
+  flip: function(){ if (FS.stage === 'run'){ FS.flipped = !FS.flipped; render(); } },
+  rate: function(el){
+    if (FS.stage !== 'run') return;
+    var id = FS.queue[FS.idx], r = +el.getAttribute('data-r');
+    var wasNew = !DB.srs[id];
+    srsRate(id, r);
+    if (wasNew){ newBudget(); DB.stats.newToday.count++; save(); }
+    FS.done++;
+    if (r === 0){ FS.again++; FS.queue.splice(Math.min(FS.idx + 3, FS.queue.length), 0, id); }
+    FS.idx++; FS.flipped = false;
+    if (FS.idx >= FS.queue.length) FS.stage = 'done';
+    render();
+  },
+  quizStart: function(el){
+    var m = +el.getAttribute('data-m');
+    QS = { stage:'run', mode:m, qs:genQuiz(m), idx:0, ok:0, locked:false };
+    if (cur !== 'quiz') go('quiz'); else render();
+  },
+  quizExit: function(){
+    clearTimers();
+    QS = { stage:'menu', mode:QS.mode, qs:[], idx:0, ok:0, locked:false };
+    render();
+  },
+  flashExit: function(){
+    clearTimers();
+    FS = { stage:'setup', queue:[], idx:0, flipped:false, done:0, again:0, startN:0 };
+    render();
+  },
+  quizPick: function(el){
+    var q = QS.qs[QS.idx], k = +el.getAttribute('data-k'), correct = k === q.ans;
+    quizAnswer(correct, function(){
+      el.classList.add(correct ? 'ok' : 'bad');
+      if (!correct){
+        var btns = document.querySelectorAll('[data-act="quizPick"]');
+        if (btns[q.ans]) btns[q.ans].classList.add('reveal');
+      }
+    });
+  },
+  quizTone: function(el){
+    var q = QS.qs[QS.idx], t = +el.getAttribute('data-t'), correct = t === q.tone;
+    quizAnswer(correct, function(){
+      el.classList.add(correct ? 'ok' : 'bad');
+      if (!correct){
+        var btns = document.querySelectorAll('[data-act="quizTone"]');
+        for (var i = 0; i < btns.length; i++) if (+btns[i].getAttribute('data-t') === q.tone) btns[i].classList.add('reveal');
+      }
+    });
+  },
+  pinTone: function(el){
+    var inp = document.getElementById('pinIn'); if (!inp || QS.locked) return;
+    var t = +el.getAttribute('data-t');
+    var toks = inp.value.trim().split(/\s+/).filter(Boolean);
+    if (!toks.length) return;
+    var last = toks.pop();
+    var base = syllBaseOnly(last);
+    if (!base){ toks.push(last); return; }
+    toks.push(t === 5 ? base.replace(/v/g, 'ü') : applyToneMark(base, t));
+    inp.value = toks.join(' ') + ' ';
+    inp.focus();
+  },
+  pinBack: function(){
+    var inp = document.getElementById('pinIn'); if (!inp || QS.locked) return;
+    inp.value = inp.value.replace(/\s+$/, '').slice(0, -1);
+    inp.focus();
+  },
+  pinCheck: function(){
+    var inp = document.getElementById('pinIn'); if (!inp || QS.locked) return;
+    var q = QS.qs[QS.idx];
+    var user = normPinyinInput(inp.value);
+    if (!user) return;
+    var ans = wordToNum(q.v.pinyin);
+    var correct = user === ans;
+    quizAnswer(correct, function(){
+      inp.classList.add(correct ? 'ok' : 'bad');
+      inp.style.borderColor = correct ? 'var(--ok)' : 'var(--bad)';
+      inp.style.background = correct ? 'var(--okbg)' : 'var(--badbg)';
+      var fb = document.getElementById('pinFb');
+      if (fb){
+        fb.style.color = correct ? 'var(--ok)' : 'var(--bad)';
+        fb.innerHTML = (correct ? '✓ ' : '✗ Correct: ') + '<b>' + esc(q.v.pinyin) + '</b>';
+      }
+    });
+  },
+  vocCat: function(el){ VS.cat = el.getAttribute('data-cat'); VS.open = -1; render(); },
+  vocOpen: function(el){ var i = +el.getAttribute('data-i'); VS.open = VS.open === i ? -1 : i; render(); },
+  charFilter: function(el){ CS.filter = el.getAttribute('data-f'); render(); },
+  charOpen: function(el){ CS.idx = +el.getAttribute('data-i'); CS.view = 'detail'; render(); },
+  charDemo: function(){ charDemo(); },
+  charPractice: function(){
+    cancelAnimationFrame(CS.raf);
+    CS.mode = 'practice'; CS.strokeIdx = 0; CS.pts = []; CS.fails = 0;
+    var ch = CHARS[CS.idx].ch;
+    cap(STROKES[ch] ? 'Draw stroke 1, starting at the red dot.' : 'Trace over the character, then tap “Check”.');
+    paint();
+  },
+  charCheck: function(){ traceCheck(); },
+  charReset: function(){ initCanvas(); },
+  charNav: function(el){
+    var d = +el.getAttribute('data-d');
+    var list = charList();
+    if (!list.length){ CS.view = 'list'; render(); return; }
+    var pos = -1;
+    for (var i = 0; i < list.length; i++) if (list[i].i === CS.idx){ pos = i; break; }
+    var npos = pos === -1 ? (d > 0 ? 0 : list.length - 1) : ((pos + d) % list.length + list.length) % list.length;
+    CS.idx = list[npos].i;
+    render();
+  },
+  charBack: function(){ CS.view = 'list'; render(); },
+  toneAns: function(el){
+    if (TS.locked) return;
+    TS.locked = true;
+    var t = +el.getAttribute('data-t'), q = TS.q, correct = t === q.tone;
+    var st = DB.stats.tone;
+    st.total++;
+    if (correct){ st.ok++; st.streak++; st.best = Math.max(st.best, st.streak); }
+    else st.streak = 0;
+    logAct(1);
+    el.classList.add(correct ? 'ok' : 'bad');
+    var btns = document.querySelectorAll('[data-act="toneAns"]');
+    for (var i = 0; i < btns.length; i++) if (!correct && +btns[i].getAttribute('data-t') === q.tone) btns[i].classList.add('reveal');
+    var fam = document.getElementById('toneFam');
+    if (fam){
+      var inner = '<div class="tokInfo">' + (correct ? '✓ ' : '✗ ') + '<b class="zh">' + q.ch + '</b> is <b>' +
+        (q.tone === 5 ? q.base + ' (neutral)' : esc(applyToneMark(q.base.replace(/ü/g,'v'), q.tone))) + '</b> — ' + esc(q.en);
+      if (q.fam){
+        inner += '<div class="tiny dim" style="margin-top:6px">One sound, five words: ' + q.fam.items.map(function(it){
+          return '<span class="zh">' + it[0] + '</span> ' + esc(it[1]) + ' <i>' + esc(it[2]) + '</i>';
+        }).join(' · ') + '</div>';
+      }
+      fam.innerHTML = inner + '</div>';
+    }
+    later(function(){ TS.locked = false; TS.q = null; render(); }, 1300);
+  },
+  phCtx: function(el){ PS.ctx = el.getAttribute('data-id'); PS.sel = null; render(); },
+  phBreak: function(){ PS.breakdown = !PS.breakdown; PS.sel = null; render(); },
+  phTok: function(el){
+    if (!PS.breakdown){ PS.breakdown = true; }
+    var li = +el.getAttribute('data-li'), k = +el.getAttribute('data-k');
+    PS.sel = (PS.sel && PS.sel[0] === li && PS.sel[1] === k) ? null : [li, k];
+    DB.stats.phrases[PS.ctx + '_' + li] = 1;
+    logAct(1); save(); render();
+  },
+  mediaLv: function(el){ MS.lv = el.getAttribute('data-lv'); render(); },
+  setTog: function(el){
+    var k = el.getAttribute('data-k');
+    DB.settings[k] = !DB.settings[k];
+    save(); applySettings(); render();
+  },
+  setSeg: function(el){
+    var k = el.getAttribute('data-k'), v = el.getAttribute('data-v');
+    DB.settings[k] = (k === 'goal') ? +v : v;
+    save(); applySettings(); render();
+  },
+  resetAll: function(el){
+    if (el.getAttribute('data-armed')){
+      DB = freshDB();
+      save(); applySettings(); go('home');
+      return;
+    }
+    el.setAttribute('data-armed', '1');
+    el.textContent = 'Tap again to erase everything';
+    later(function(){
+      el.removeAttribute('data-armed');
+      el.innerHTML = '<i data-lucide="rotate-ccw"></i>Reset all progress';
+      icons();
+    }, 3000);
+  }
+};
+function onTap(e){
+  var t = e.target;
+  if (!t || !t.closest) t = t && t.parentElement;
+  var el = t && t.closest ? t.closest('[data-act]') : null;
+  if (!el) return;
+  var fn = ACTIONS[el.getAttribute('data-act')];
+  if (fn){ e.preventDefault(); fn(el); }
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+function boot(){
+  document.getElementById('screen').innerHTML = '<div class="center" style="padding:120px 24px"><div class="bigGlyph zh redTx noselect">\u58a8</div><p class="dim small" style="margin-top:10px">loading\u2026</p></div>';
+  loadDB().then(function(db){ DB = db; boot2(); });
+}
+function boot2(){
+  applySettings();
+  document.body.addEventListener('click', onTap);
+  document.getElementById('backBtn').addEventListener('click', function(){ go('home'); });
+  document.getElementById('settingsBtn').addEventListener('click', function(){ go('settings'); });
+  var tabs = document.querySelectorAll('#tabbar button');
+  for (var i = 0; i < tabs.length; i++) (function(b){
+    b.addEventListener('click', function(){ go(b.getAttribute('data-tab')); });
+  })(tabs[i]);
+  window.addEventListener('resize', function(){ if (cur === 'characters' && CS.view === 'detail') initCanvas(); });
+  render();
+}
+
+/* ============================================================
+   SELF TEST — runs under Node (no DOM) for data validation
+   ============================================================ */
+function runSelfTest(){
+  var errs = [];
+  function chk(cond, msg){ if (!cond) errs.push(msg); }
+
+  chk(VOCAB.length >= 300, 'VOCAB too small: ' + VOCAB.length);
+  var catIds = CATS.map(function(c){ return c[0]; });
+  var seen = {};
+  VOCAB.forEach(function(v, i){
+    if (seen[v.character] !== undefined) errs.push('dup word ' + v.character + ' @' + i + ' & @' + seen[v.character]);
+    seen[v.character] = i;
+    var derived = tonesOf(v.pinyin);
+    if (derived !== v.tone) errs.push('tone mismatch @' + i + ' ' + v.character + ': field="' + v.tone + '" pinyin→"' + derived + '" (' + v.pinyin + ')');
+    var nch = Array.from(v.character).length, nsy = v.pinyin.split(' ').length;
+    if (nch !== nsy) errs.push('char/syll count @' + i + ' ' + v.character + ': ' + nch + ' chars vs ' + nsy + ' syllables');
+    if (!v.exampleChinese || !v.exampleEnglish) errs.push('missing example @' + i + ' ' + v.character);
+    if (catIds.indexOf(v.category) === -1) errs.push('bad category @' + i + ' "' + v.category + '"');
+    v.pinyin.split(' ').forEach(function(sy){
+      if (!/[1-5]$/.test(syllToNum(sy))) errs.push('unparsable syllable "' + sy + '" in ' + v.character);
+    });
+  });
+
+  chk(CHARS.length === 150, 'CHARS length ' + CHARS.length);
+  var cseen = {};
+  CHARS.forEach(function(c){
+    if (cseen[c.ch]) errs.push('dup char ' + c.ch);
+    cseen[c.ch] = 1;
+    if (!/[1-5]$/.test(syllToNum(c.py))) errs.push('char pinyin unparsable ' + c.ch + ' "' + c.py + '"');
+  });
+  Object.keys(STROKES).forEach(function(ch){
+    if (!cseen[ch]) errs.push('STROKES key not in CHARS: ' + ch);
+    STROKES[ch].forEach(function(st, si){
+      if (st.length < 2) errs.push('stroke too short ' + ch + ' #' + si);
+      st.forEach(function(p){
+        if (!(p[0] >= 0 && p[0] <= 100 && p[1] >= 0 && p[1] <= 100)) errs.push('stroke point out of bounds in ' + ch);
+      });
+    });
+  });
+
+  var phraseLines = 0;
+  PHRASES.forEach(function(P){
+    P.lines.forEach(function(L, li){
+      phraseLines++;
+      if (!L.en) errs.push('phrase missing en ' + P.id + ' #' + li);
+      L.toks.forEach(function(tk){
+        if (!Array.isArray(tk) || tk.length !== 3) errs.push('bad token shape ' + P.id + ' #' + li);
+        else if (tk[1]){
+          tk[1].split(' ').forEach(function(sy){
+            if (!/[1-5]$/.test(syllToNum(sy))) errs.push('phrase syllable unparsable "' + sy + '" in ' + P.id + ' #' + li);
+          });
+        }
+      });
+    });
+  });
+
+  MINIMAL_PAIRS.forEach(function(f){
+    f.items.forEach(function(it){
+      if (!/[1-5]$/.test(syllToNum(it[1]))) errs.push('pair unparsable ' + it[1]);
+      if (syllBaseOnly(it[1]) !== f.base) errs.push('pair base mismatch "' + f.base + '" vs "' + it[1] + '" → ' + syllBaseOnly(it[1]));
+    });
+  });
+
+  LEVELS.forEach(function(lv){ chk(MEDIA[lv] && MEDIA[lv].sections.length > 0, 'media missing ' + lv); });
+  chk(PATH.length === 8, 'PATH length ' + PATH.length);
+  chk(TIPS.length >= 5, 'TIPS too few');
+
+  chk(applyToneMark('ni', 3) === 'nǐ', 'applyToneMark ni3 → ' + applyToneMark('ni', 3));
+  chk(applyToneMark('lv', 4) === 'lǜ', 'applyToneMark lv4 → ' + applyToneMark('lv', 4));
+  chk(applyToneMark('hao', 3) === 'hǎo', 'applyToneMark hao3 → ' + applyToneMark('hao', 3));
+  chk(applyToneMark('liu', 2) === 'liú', 'applyToneMark liu2 → ' + applyToneMark('liu', 2));
+  chk(applyToneMark('gui', 4) === 'guì', 'applyToneMark gui4 → ' + applyToneMark('gui', 4));
+  chk(applyToneMark('dou', 1) === 'dōu', 'applyToneMark dou1 → ' + applyToneMark('dou', 1));
+  chk(applyToneMark('xie', 4) === 'xiè', 'applyToneMark xie4 → ' + applyToneMark('xie', 4));
+  chk(normPinyinInput('ni3hao3') === 'ni3 hao3', 'normPinyinInput ni3hao3 → "' + normPinyinInput('ni3hao3') + '"');
+  chk(normPinyinInput('nǐ hǎo') === 'ni3 hao3', 'normPinyinInput marks → "' + normPinyinInput('nǐ hǎo') + '"');
+  chk(wordToNum('xiè xie') === 'xie4 xie5', 'wordToNum neutral → ' + wordToNum('xiè xie'));
+
+  srsRate('w0', 2);
+  chk(DB.srs.w0 && DB.srs.w0.iv === 1, 'SRS first Good iv → ' + (DB.srs.w0 && DB.srs.w0.iv));
+  srsRate('w0', 2);
+  chk(DB.srs.w0.iv === 6, 'SRS second Good iv → ' + DB.srs.w0.iv);
+  srsRate('w0', 0);
+  chk(DB.srs.w0.iv === 0 && DB.srs.w0.reps === 0, 'SRS Again reset failed');
+
+  if (errs.length){
+    console.error('SELFTEST FAIL — ' + errs.length + ' problem(s):');
+    errs.slice(0, 60).forEach(function(e){ console.error('  - ' + e); });
+    if (typeof process !== 'undefined') process.exitCode = 1;
+  } else {
+    console.log('SELFTEST PASS — vocab:' + VOCAB.length + ' · chars:' + CHARS.length +
+      ' · guided strokes:' + Object.keys(STROKES).length + ' · phrase lines:' + phraseLines +
+      ' · pairs:' + MINIMAL_PAIRS.length + ' · media levels:' + LEVELS.length);
+  }
+}
+
+if (IS_BROWSER){
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+} else {
+  runSelfTest();
+}
+})();
+</script>
+</body>
+</html>
